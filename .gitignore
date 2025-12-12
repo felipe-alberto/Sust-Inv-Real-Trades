@@ -1,0 +1,27 @@
+# Ignore everything by default
+*
+
+# But keep these
+!sust_inv_code/
+!sust_inv_code/**
+!README.md
+!.gitignore
+
+# Python
+__pycache__/
+*.pyc
+
+# Generated outputs
+output/
+figures/
+tables/
+logs/
+
+# Project-specific junk
+slides/
+prev/
+dev/
+notes/
+
+# OS
+.DS_Store
