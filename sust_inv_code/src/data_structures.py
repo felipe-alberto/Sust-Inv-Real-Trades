@@ -24,6 +24,15 @@ class EquilibriumOutcome:
     NU: float
     NR: float
     NS: float
+    PA: float
+    PU: float
+    PR: float
+    PS: float
+    xnA: float
+    xnU: float
+    xgA: float
+    xgS: float
+    xsR: float
 
 @dataclass
 class ModelResults:
