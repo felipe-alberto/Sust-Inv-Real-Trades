@@ -25,11 +25,12 @@ def alloc_only_corporate_choices(params: ModelParams):
     I = Ig + In + Is                                   # Investor Population 
 
     # Formulas for Optimal Corporate Choices in Market for Allocation Only
-    f = (Is / (Ig + In))*(Ig * T * sigma_cd * (tau / phi) - Nc)
-    KerNU = (Nd + Is * K * (tau / (sigma_d**2)) + Ig * T * (tau * (sigma_c**2) / phi) + (sigma_cd / (sigma_d**2))*f)
+    KerNU = ((Nd + Is * K * (tau / (sigma_d**2)) - (sigma_cd/sigma_d**2) * Nc * (Is / (Ig+In)))
+    + Ig * T * (tau / sigma_d**2) * ((Is * sigma_cd**2 + (Ig + In) * sigma_c**2 * sigma_d **2)/((Ig + In) * phi)))
     CoreNU = (In / I) * (KerNU)
     NU = max(0, CoreNU) 
-    KerNS = (Nd + Is * K * (tau / (sigma_d**2)) - (Is + In) * T * (tau * (sigma_c**2) / phi) - (sigma_cd / (sigma_d**2))*f)
+    KerNS = ((Nd + Is * K * (tau / (sigma_d**2)) - (sigma_cd/sigma_d**2) * Nc * (Is / (Ig+In)))
+    + Ig * T * (tau / sigma_d**2) * ((Ig * Is * sigma_cd**2 - (Ig + In) * (Is + In)* sigma_c**2 * sigma_d **2)/(Ig*(Ig + In) * phi)))
     CoreNS = (Ig / I) * (KerNS)
     NS = max(0, CoreNS)
     KerNR = (Nd - (Ig + In) * K * (tau / (sigma_d**2)) + (Ig) * T * (tau / (sigma_d**2)) + (sigma_cd / (sigma_d**2))*Nc)
@@ -56,13 +57,13 @@ def alloc_only_share_prices(params: ModelParams):
     sigma_c, sigma_d, sigma_cd = params.sigma_c, params.sigma_d, params.sigma_cd
     Nc, Nd = params.Nc, params.Nd
 
-    I = Ig + In + Is                                   # Investor Population
-
-    # Debug
-    print(Ig, In, Is, K, T, tau, mu_c , mu_d, sigma_c, sigma_d, sigma_cd, Nc, Nd)
+    I, Ign = Ig + In + Is, Ig + In        # Investor Population Groups
 
     # Formulas for Firm Share Prices in Market for Allocation Only
-    PA = mu_c - (1/((Ig + In)*tau)) * (Nc * (sigma_c**2) + Nd * sigma_cd)
+    PA = ( mu_c - 
+        (Nc*sigma_c**2 + Nd*sigma_cd)/(I*tau) 
+        - (Is/(Ign*I)) * (Nc/tau) * (sigma_c**2 - sigma_cd**2/sigma_d**2)
+        + (Is/I) * (sigma_cd/sigma_d**2) * (-K + (Ig/Ign)*T))
     PU = mu_d  - (1/I)* (Is*K + Ig * T  + Nd*(sigma_d**2)/tau +Nc * (sigma_cd/tau))
     PS = mu_d - (1/I)*(Is * (K - T)   - In * T  +  Nd * (sigma_d**2)/tau    + Nc  * (sigma_cd/tau))
     PR = mu_d - (1/I)*( - Ig * (K-T)   - In * K  +  Nd * (sigma_d**2)/tau + Nc * (sigma_cd/tau) )
@@ -129,7 +130,6 @@ def solve_equilibrium(params: ModelParams) -> EquilibriumOutcome:
     PA, PU, PR, PS = alloc_only_share_prices(params)
     # 3. Compute investor positions 
     xnA, xnU, xgA, xgS, xsR = alloc_only_investor_positions(params)
-
     # N. Construct equilibrium object
     return EquilibriumOutcome(
         NA = NA,

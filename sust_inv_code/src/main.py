@@ -30,7 +30,7 @@ def run_model(params: ModelParams):
 
 if __name__ == "__main__":
     params = ModelParams(Ig=30, In=30, Is=30, K=0.9, T=0.5, tau=1.0, mu_c = 5.0, mu_d = 5.0,
-                        sigma_c=1.0, sigma_d=1.0, sigma_cd=0.00,
+                        sigma_c=1.0, sigma_d=1.0, sigma_cd=0.2,
                         Nc=50, Nd=50)
     results = run_model(params)
 

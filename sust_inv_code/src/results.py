@@ -11,7 +11,7 @@ def compute_risk_adjusted_welfare(outcome: EquilibriumOutcome, params: ModelPara
         outcome.xgA**2 * params.sigma_c**2 + outcome.xgS**2 * params.sigma_d**2 + 2 * outcome.xgA * outcome.xgS * params.sigma_cd)
     s_mean = (outcome.xsR * params.mu_d)
     s_risk = 1/(2* params.tau)  * (outcome.xsR**2 * params.sigma_d**2)
-    risk_adjusted_welfare = n_mean - n_risk + g_mean - g_risk + s_mean - s_risk
+    risk_adjusted_welfare = params.In*(n_mean - n_risk) + params.Ig*(g_mean - g_risk) + params.Is*(s_mean - s_risk)
     return risk_adjusted_welfare
 
 # ----- Main routine ---------------------------------------------------------
@@ -22,7 +22,7 @@ def compute_results(outcome, params):
     secondary_trading = outcome.NS
     risk_adjusted_welfare = compute_risk_adjusted_welfare(outcome, params)
     market_capitalization = (
-        outcome.NA * outcome.PA + outcome.NU * outcome.PU + outcome.NS * outcome.PS
+        outcome.NA * outcome.PA + outcome.NU * outcome.PU + outcome.NS * outcome.PS + outcome.NR * outcome.PR
         )
 
     return ModelResults(
