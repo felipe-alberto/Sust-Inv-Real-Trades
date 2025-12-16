@@ -1,8 +1,8 @@
-from sust_inv_code.src.data_structures import ModelParams, EquilibriumOutcome, ModelResults
+from sust_inv_code.src.data_structures import ModelParams, EqmAllocationOnly, ModelResults
 
 # ----- Subfunctions ---------------------------------------------------------
 
-def compute_risk_adjusted_welfare(outcome: EquilibriumOutcome, params: ModelParams) -> float:
+def compute_risk_adjusted_welfare(outcome: EqmAllocationOnly, params: ModelParams) -> float:
     n_mean = (outcome.xnA * params.mu_c + outcome.xnU * params.mu_d)
     n_risk = 1/(2* params.tau)  * (
         outcome.xnA**2 * params.sigma_c**2 + outcome.xnU**2 * params.sigma_d**2 + 2 * outcome.xnA * outcome.xnU * params.sigma_cd)

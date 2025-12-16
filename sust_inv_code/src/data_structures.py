@@ -16,10 +16,18 @@ class ModelParams:
     sigma_cd: float
     Nc: float
     Nd: float
-
+    @property
+    def I(self) -> float:
+        return self.Ig + self.In + self.Is
+    @property
+    def phi(self) -> float:
+        return self.sigma_c**2 * self.sigma_d**2 - self.sigma_cd**2
+    @property
+    def psi(self) -> float:
+        return self.sigma_c**2 - 2 * self.sigma_cd + self.sigma_d**2 
 
 @dataclass
-class EquilibriumOutcome:
+class EqmAllocationOnly:
     NA: float
     NU: float
     NR: float
@@ -33,6 +41,44 @@ class EquilibriumOutcome:
     xgA: float
     xgS: float
     xsR: float
+
+@dataclass
+class EqmObligationsTrading:
+    NA: float
+    NU: float
+    NR: float
+    NS: float
+    PA: float
+    PU: float
+    PR: float
+    PS: float
+    xnA: float
+    xnU: float
+    xgA: float
+    xgS: float
+    xsR: float
+
+@dataclass
+class EqmCornerObTrading:
+    NA: float
+    NAprime : float
+    NU: float
+    NR: float
+    NS: float
+    NUprime : float
+    PA: float
+    PAprime : float
+    PU: float
+    PR: float
+    PS: float
+    PUprime : float
+    xnA: float
+    xnU: float
+    xgA: float
+    xgG: float
+    xsAprime: float
+    xsR: float
+
 
 @dataclass
 class ModelResults:
