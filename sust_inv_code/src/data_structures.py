@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
+from sust_inv_code.src.types import FirmType, InvestorType
 
 @dataclass
 class ModelParams:
