@@ -28,62 +28,6 @@ class ModelParams:
         return self.sigma_c**2 - 2 * self.sigma_cd + self.sigma_d**2 
 
 @dataclass
-class EqmAllocationOnly:
-    NA: float
-    NU: float
-    NR: float
-    NS: float
-    PA: float
-    PU: float
-    PR: float
-    PS: float
-    xnA: float
-    xnU: float
-    xgA: float
-    xgS: float
-    xsR: float
-
-@dataclass
-class EqmObligationsTrading:
-    NA: float
-    NU: float
-    NR: float
-    NS: float
-    PA: float
-    PU: float
-    PR: float
-    PS: float
-    xnA: float
-    xnU: float
-    xgA: float
-    xgS: float
-    xsR: float
-
-@dataclass
-class EqmCornerObTrading:
-    NA: float
-    NAprime : float
-    NU: float
-    NR: float
-    NS: float
-    NUprime : float
-    PA: float
-    PAprime : float
-    PU: float
-    PR: float
-    PS: float
-    PUprime : float
-    xnA: float
-    xnU: float
-    xgA: float
-    xgS: float
-    xgUprime: float
-    xsAprime: float
-    xsR: float
-    pi: float
-
-
-@dataclass
 class ModelResults:
     risk_adjusted_welfare: float
     reformed_assets: float
