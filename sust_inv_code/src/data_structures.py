@@ -76,9 +76,11 @@ class EqmCornerObTrading:
     xnA: float
     xnU: float
     xgA: float
-    xgG: float
+    xgS: float
+    xgUprime: float
     xsAprime: float
     xsR: float
+    pi: float
 
 
 @dataclass

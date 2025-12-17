@@ -9,7 +9,7 @@ from sust_inv_code.src.data_structures import ModelParams, EqmAllocationOnly, Eq
 
 # ----- Subfunctions ---------------------------------------------------------
 
-PrintBool = True
+PrintBool = False
 
 def alloc_only_corporate_choices(params: ModelParams):
     
@@ -71,10 +71,10 @@ def alloc_only_share_prices(params: ModelParams):
         print("Share Price Secondary Trading Firms: " + str(PS))
         print("Share Price Reformed Firms: " + str(PR))
         print("Share Price Acceptable Firms: " + str(PR))
-    print(PR)
-    print(PU)
-    print(PR - PU)
-    print(K)
+        print(PR)
+        print(PU)
+        print(PR - PU)
+        print(K)
     return PA, PU, PR, PS
 
 def alloc_only_investor_positions(params: ModelParams):
@@ -179,14 +179,17 @@ def corner_ob_trading_investor_positions(params: ModelParams) -> float:
     sigma_c, sigma_d, sigma_cd = params.sigma_c, params.sigma_d, params.sigma_cd
     phi = (sigma_c**2) * (sigma_d**2) - (sigma_cd**2)  # Cov Matrix Det
     PA, PAprime, PU, PR, PS, PUprime = corner_ob_trading_share_prices(params)
+    NA, NAprime, NU, NR, NS, NUprime = corner_ob_trading_corporate_choices(params)
     PG = PS
     xnA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PU) * sigma_cd)
     xnU = (tau / phi) * ((mu_d - PU) * sigma_c**2 - (mu_c - PA) * sigma_cd)
     xgA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PG) * sigma_cd)
     xgG = (tau / phi) * ((mu_d - PG) * sigma_c**2 - (mu_c - PA) * sigma_cd)    
+    xgS = NS / params.Ig
+    xgUprime = NUprime / params.Ig
     xsAprime = (tau / phi) * ((mu_c - PAprime) * sigma_d**2 - (mu_d - PR) * sigma_cd)
     xsR = (tau / phi) * ((mu_d - PR) * sigma_c**2 - (mu_c - PAprime) * sigma_cd)
-    return xnA, xnU, xgA, xgG, xsAprime, xsR
+    return xnA, xnU, xgA, xgS, xgUprime, xsAprime, xsR
 
 def reform_exchange_corporate_choices(params: ModelParams) -> float:
     # compute α, β, φ
@@ -243,7 +246,7 @@ def solve_equilibrium(params: ModelParams) -> EqmAllocationOnly:
         # 2.1.1 Corner Ob Trading Eqm Computation
         NA, NAprime, NU, NR, NS, NUprime = corner_ob_trading_corporate_choices(params)      #  Corner Ob Trading Corporate Choices 
         PA, PAprime, PU, PR, PS, PUprime = corner_ob_trading_share_prices(params)           #  Corner Ob Trading Share Prices
-        xnA, xnU, xgA, xgG, xsAprime, xsR = corner_ob_trading_investor_positions(params)    #  Corner Ob Trading Investor Positions
+        xnA, xnU, xgA, xgS, xgUprime, xsAprime, xsR = corner_ob_trading_investor_positions(params)    #  Corner Ob Trading Investor Positions
         # 2.1.2 Corner Ob Trading Equilibrium Object
         eqm_corner_ob_trading = EqmCornerObTrading(
             NA = NA,
@@ -261,9 +264,11 @@ def solve_equilibrium(params: ModelParams) -> EqmAllocationOnly:
             xnA = xnA,
             xnU = xnU,
             xgA = xgA,
-            xgG = xgG,
+            xgS = xgS,
+            xgUprime = xgUprime,
             xsAprime = xsAprime,
-            xsR = xsR
+            xsR = xsR,
+            pi = -params.T
         )
 
     return eqm_allocation_only, eqm_corner_ob_trading

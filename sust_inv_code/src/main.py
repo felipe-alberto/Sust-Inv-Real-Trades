@@ -4,12 +4,12 @@
 
 from sust_inv_code.src.data_structures import ModelParams
 from sust_inv_code.src.equilibrium import solve_equilibrium
-from sust_inv_code.src.tests import check_eqm_allocation_only, check_eqm_corner_ob_trading, check_eqm_allocation_only_v2
+from sust_inv_code.src.tests import check_eqm_allocation_only, check_eqm_corner_ob_trading, check_eqm_v2
 from sust_inv_code.src.results import compute_results
 from sust_inv_code.src.data_structures import FirmType, InvestorType
-from sust_inv_code.src.equilibrium_state import EquilibriumAllocationOnly
+from sust_inv_code.src.equilibrium_state import EquilibriumAllocationOnly, EquilibriumAllocationTransformation
 
-PrintBool = True
+PrintBool = False
 
 def run_model(params: ModelParams):
     
@@ -45,7 +45,7 @@ def run_model(params: ModelParams):
         },
     }
 
-    NewEqm = EquilibriumAllocationOnly(
+    NewEqmAlloc = EquilibriumAllocationOnly(
         N=N,
         P=P,
         X=X,
@@ -58,6 +58,53 @@ def run_model(params: ModelParams):
         regime="allocation_only",
     )
     
+    e = eqm_corner_ob_trading
+    N = {
+        FirmType.A: e.NA,
+        FirmType.Aprime: e.NAprime,
+        FirmType.U: e.NU,
+        FirmType.R: e.NR,
+        FirmType.S: e.NS,
+        FirmType.Uprime: e.NUprime,
+    }
+    P = {
+        FirmType.A: e.PA,
+        FirmType.Aprime:e.PAprime,
+        FirmType.U: e.PU,
+        FirmType.R: e.PR,
+        FirmType.S: e.PS,
+        FirmType.Uprime: e.PUprime,
+    }
+
+    X = {
+        InvestorType.n: {
+            FirmType.A: e.xnA,
+            FirmType.U: e.xnU,
+        },
+        InvestorType.g: {
+            FirmType.A: e.xgA,
+            FirmType.S: e.xgS,
+            FirmType.Uprime: e.xgUprime,
+        },
+        InvestorType.s: {
+            FirmType.Aprime: e.xsAprime,
+            FirmType.R: e.xsR,
+        },
+    }
+    NewEqmTransform = EquilibriumAllocationTransformation(
+        N=N,
+        P=P,
+        X=X,
+        pi=e.pi,
+        active_firms={FirmType.A, FirmType.Aprime, FirmType.U, FirmType.R, FirmType.S, FirmType.Uprime},
+        active_links={
+            InvestorType.n: {FirmType.A, FirmType.U},
+            InvestorType.g: {FirmType.A, FirmType.S, FirmType.Uprime},
+            InvestorType.s: {FirmType.Aprime, FirmType.R},
+        },
+        regime="transformation_corner_obs_trading",
+    )
+    
     # Check Allocation Only Equilibrium
     is_competitive_eqm = check_eqm_allocation_only(eqm_allocation_only, params)
     if not is_competitive_eqm:
@@ -65,36 +112,28 @@ def run_model(params: ModelParams):
     else:
         print("Equilibrium conditions satisfied for allocation only - OLD OBJECT!")
         results_allocation_only = compute_results(eqm_allocation_only, params)
-        if PrintBool:
-            r = results_allocation_only
-            print("Reformed assets in eqm:")
-            print(r.reformed_assets)
-            print("Secondary traded assets in eqm:")
-            print(r.secondary_trading)
-            print("Market Capitalization in eqm:")
-            print(r.market_capitalization)
-            print("Risk-Adjusted Welfare in eqm:")
-            print(r.risk_adjusted_welfare)
     
-    # Smoke Screen for New Allocation Equilibrium Object
-    is_competitive_eqm = check_eqm_allocation_only_v2(NewEqm, params)
-    if not is_competitive_eqm:
-        raise ValueError("Equilibrium conditions not satisfied for NEW OBJECT")
-    else:
-        print("Equilibrium conditions satisfied for allocation only - NEW OBJECT!")
-
     # Check Corner OB Trading Equilibrium
     is_competitive_eqm = check_eqm_corner_ob_trading(eqm_corner_ob_trading, params)
     if not is_competitive_eqm:
         raise ValueError("Equilibrium conditions not satisfied")
     else:
-        print("Equilibrium conditions satisfied for corner OB trading!")
-        directly_reformed_assets = eqm_corner_ob_trading.NR
-        secondary_trading = eqm_corner_ob_trading.NS
-        indirectly_reformed_assets = eqm_corner_ob_trading.NUprime
-        reformed_assets = directly_reformed_assets + indirectly_reformed_assets
-    print(reformed_assets, r.reformed_assets)
-    print(secondary_trading, r.secondary_trading)
+        print("Equilibrium conditions satisfied for corner OB trading - OLD OBJECT!")
+    
+    # Smoke Screen for New Allocation Equilibrium Object
+    is_competitive_eqm = check_eqm_v2(NewEqmAlloc, params)
+    if not is_competitive_eqm:
+        raise ValueError("Equilibrium conditions not satisfied for NEW OBJECT")
+    else:
+        print("Equilibrium conditions satisfied for allocation only - NEW OBJECT!")
+
+    # Smoke Screen for New Allocation Equilibrium Object
+    is_competitive_eqm = check_eqm_v2(NewEqmTransform, params)
+    if not is_competitive_eqm:
+        raise ValueError("Equilibrium conditions not satisfied for NEW OBJECT")
+    else:
+        print("Equilibrium conditions satisfied for allocation only - NEW OBJECT!")
+
     return results_allocation_only
 
 if __name__ == "__main__":
