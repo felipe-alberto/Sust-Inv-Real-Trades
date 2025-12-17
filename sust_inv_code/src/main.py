@@ -2,12 +2,11 @@
 # src/main.py
 # TODO: Refactor allocation-only equilibrium into unified Equilibrium container.
 
-from sust_inv_code.src.data_structures import ModelParams
+from sust_inv_code.src.data_structures import ModelParams, FirmType, InvestorType
+from sust_inv_code.src.data_structures import EquilibriumAllocationOnly, EquilibriumAllocationTransformation
 from sust_inv_code.src.equilibrium import solve_equilibrium
 from sust_inv_code.src.tests import check_eqm
 from sust_inv_code.src.results import compute_results
-from sust_inv_code.src.data_structures import FirmType, InvestorType
-from sust_inv_code.src.equilibrium_state import EquilibriumAllocationOnly, EquilibriumAllocationTransformation
 
 PrintBool = False
 

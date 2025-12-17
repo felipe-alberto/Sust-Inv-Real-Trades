@@ -6,8 +6,8 @@
 # ----- Imports ---------------------------------------------------------------
 
 from sust_inv_code.src.data_structures import ModelParams
-from sust_inv_code.src.types import FirmType, InvestorType
-from sust_inv_code.src.equilibrium_state import EquilibriumAllocationOnly, EquilibriumAllocationTransformation
+from sust_inv_code.src.data_structures import FirmType, InvestorType
+from sust_inv_code.src.data_structures import EquilibriumAllocationOnly, EquilibriumAllocationTransformation
 
 # ----- Subfunctions ---------------------------------------------------------
 

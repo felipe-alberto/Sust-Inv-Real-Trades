@@ -1,6 +1,6 @@
 from sust_inv_code.src.data_structures import ModelParams, ModelResults
-from sust_inv_code.src.types import FirmType, InvestorType
-from sust_inv_code.src.equilibrium_state import EquilibriumAllocationOnly
+from sust_inv_code.src.data_structures import FirmType, InvestorType
+from sust_inv_code.src.data_structures import EquilibriumAllocationOnly
 
 
 # ----- Subfunctions ---------------------------------------------------------

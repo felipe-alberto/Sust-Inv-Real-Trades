@@ -1,6 +1,7 @@
-from dataclasses import dataclass
+from enum import Enum
 from typing import Optional
-from sust_inv_code.src.types import FirmType, InvestorType
+from typing import Dict, Set
+from dataclasses import dataclass
 
 @dataclass
 class ModelParams:
@@ -26,6 +27,38 @@ class ModelParams:
     @property
     def psi(self) -> float:
         return self.sigma_c**2 - 2 * self.sigma_cd + self.sigma_d**2 
+    
+class FirmType(str, Enum):
+    A = "A"        
+    Aprime = "A'"  
+    U = "U"        
+    R = "R"        
+    S = "S"        
+    Uprime = "U'"  
+
+class InvestorType(str, Enum):
+    g = "g"        
+    n = "n"        
+    s = "s"        
+
+@dataclass
+class EquilibriumAllocationOnly:
+    N: Dict[FirmType, float]        
+    P: Dict[FirmType, float]        
+    X: Dict[InvestorType, Dict[FirmType, float]] 
+    active_firms: Set[FirmType]
+    active_links: Dict[InvestorType, Set[FirmType]]
+    regime: str
+
+@dataclass
+class EquilibriumAllocationTransformation:
+    N: Dict[FirmType, float]        
+    P: Dict[FirmType, float]        
+    X: Dict[InvestorType, Dict[FirmType, float]] 
+    pi : float                      
+    active_firms: Set[FirmType]
+    active_links: Dict[InvestorType, Set[FirmType]]
+    regime: str
 
 @dataclass
 class ModelResults:

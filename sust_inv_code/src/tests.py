@@ -1,7 +1,7 @@
 # src/tests.py
 
 import math
-from sust_inv_code.src.types import FirmType, InvestorType
+from sust_inv_code.src.data_structures import FirmType, InvestorType
 
 EQM_REL_TOL = 1e-9
 EQM_ABS_TOL = 1e-12
