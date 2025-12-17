@@ -66,4 +66,5 @@ class ModelResults:
     reformed_assets: float
     secondary_trading: float
     market_capitalization: float
+    investor_welfare: Dict[InvestorType, float]
 
