@@ -66,5 +66,8 @@ class ModelResults:
     reformed_assets: float
     secondary_trading: float
     market_capitalization: float
+    firm_market_cap: Dict[FirmType, float]
     investor_welfare: Dict[InvestorType, float]
+    clean_market_cap: Optional[float] = None
+    dirty_market_cap: Optional[float] = None
 

@@ -30,6 +30,9 @@ a_normalized_risk_adjusted_welfare = []
 a_n_welfare = []
 a_g_welfare = []
 a_s_welfare = []
+a_firm_market_cap = []
+a_clean_market_cap = []
+a_dirty_market_cap = []
 
 t_reformed_real_assets = []
 t_secondary_traded_assets = []
@@ -39,6 +42,9 @@ t_normalized_risk_adjusted_welfare = []
 t_n_welfare = []
 t_g_welfare = []
 t_s_welfare = []
+t_firm_market_cap = []
+t_clean_market_cap = []
+t_dirty_market_cap = []
 
 for ns in Is_values:
     
@@ -55,6 +61,9 @@ for ns in Is_values:
     a_n_welfare.append(a.investor_welfare[InvestorType.n])
     a_g_welfare.append(a.investor_welfare[InvestorType.g])
     a_s_welfare.append(a.investor_welfare[InvestorType.s])
+    a_firm_market_cap.append(a.firm_market_cap)
+    a_clean_market_cap.append(a.clean_market_cap)
+    a_dirty_market_cap.append(a.dirty_market_cap)
     
     t = results_transformation
     t_reformed_real_assets.append(t.reformed_assets)
@@ -65,6 +74,9 @@ for ns in Is_values:
     t_n_welfare.append(t.investor_welfare[InvestorType.n])
     t_g_welfare.append(t.investor_welfare[InvestorType.g])
     t_s_welfare.append(t.investor_welfare[InvestorType.s])
+    t_firm_market_cap.append(t.firm_market_cap)
+    t_clean_market_cap.append(t.clean_market_cap)
+    t_dirty_market_cap.append(t.dirty_market_cap)
 
 plt.plot(Is_values, a_reformed_real_assets, label='Reformed Real Assets (Allocation Only)')
 plt.plot(Is_values, a_secondary_traded_assets, label='Secondary Traded Assets (Allocation Only)')
@@ -124,3 +136,27 @@ plt.title('Investor s Welfare vs Is')
 plt.legend()
 plt.show()
 
+for f in FirmType:
+    plt.plot(Is_values, [fm[f] for fm in a_firm_market_cap], label=f'Firm {f} Market Cap (Allocation Only)')
+    plt.plot(Is_values, [fm[f] for fm in t_firm_market_cap], label=f'Firm {f} Market Cap (+Transformation)')
+    plt.xlabel('Is')
+    plt.ylabel(f'Firm {f} Market Cap')
+    plt.title(f'Firm {f} Market Cap vs Is')
+    plt.legend()
+    plt.show()
+
+plt.plot(Is_values, a_clean_market_cap, label='Clean Market Cap (Allocation Only)')
+plt.plot(Is_values, t_clean_market_cap, label='Clean Market Cap (+Transformation)')
+plt.xlabel('Is')
+plt.ylabel('Clean Market Cap')
+plt.title('Clean Market Cap vs Is')
+plt.legend()
+plt.show()
+
+plt.plot(Is_values, a_dirty_market_cap, label='Dirty Market Cap (Allocation Only)')
+plt.plot(Is_values, t_dirty_market_cap, label='Dirty Market Cap (+Transformation)')
+plt.xlabel('Is')
+plt.ylabel('Dirty Market Cap')
+plt.title('Dirty Market Cap vs Is')
+plt.legend()
+plt.show()
