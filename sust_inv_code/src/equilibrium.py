@@ -433,7 +433,7 @@ def solve_equilibrium(params: ModelParams) -> tuple[EquilibriumAllocationOnly, E
                 N=N,
                 P=P,
                 X=X,
-                pi=-params.T,
+                pi=pi_ob,
                 active_firms={FirmType.A, FirmType.Aprime, FirmType.U, FirmType.R, FirmType.Uprime},
                 active_links={
                     InvestorType.n: {FirmType.A, FirmType.U},
@@ -485,7 +485,7 @@ def solve_equilibrium(params: ModelParams) -> tuple[EquilibriumAllocationOnly, E
                 N=N,
                 P=P,
                 X=X,
-                pi=-params.T,
+                pi=-pi_op,
                 active_firms={FirmType.A, FirmType.Aprime, FirmType.R, FirmType.Uprime},
                 active_links={
                     InvestorType.n: {FirmType.A, FirmType.Uprime},

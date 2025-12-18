@@ -40,6 +40,33 @@ def no_entry_corner_obs_trading(NewEqm, params):
         rel_tol=EQM_REL_TOL, abs_tol=EQM_ABS_TOL
     ), "Diff in Obligation Buyer Share Price Does Not Equal K - T"
 
+def no_entry_interior_obs_trading(NewEqm, params):
+    eqm, p = NewEqm, params
+    assert math.isclose(
+        eqm.P[FirmType.R] - eqm.P[FirmType.U], p.K,
+        rel_tol=EQM_REL_TOL, abs_tol=EQM_ABS_TOL
+    ), "Diff in reform share price does not equal reform cost"
+    assert math.isclose(
+        eqm.P[FirmType.Uprime] - eqm.P[FirmType.U], -eqm.pi,
+        rel_tol=EQM_REL_TOL, abs_tol=EQM_ABS_TOL
+    ), "Diff in obs-seller reformed share price does not equal - pi"
+    assert math.isclose(
+        eqm.P[FirmType.Aprime] - eqm.P[FirmType.A], (p.K + eqm.pi),
+        rel_tol=EQM_REL_TOL, abs_tol=EQM_ABS_TOL
+    ), "Diff in Obligation Buyer Share Price Does Not Equal K + pi"
+
+def no_entry_options_trading(NewEqm, params):
+    eqm, p = NewEqm, params
+    assert math.isclose(
+        eqm.P[FirmType.R] - eqm.P[FirmType.Uprime], p.K + eqm.pi,
+        rel_tol=EQM_REL_TOL, abs_tol=EQM_ABS_TOL
+    ), "Diff in reform share price does not equal reform cost plus option price"
+    assert math.isclose(
+        eqm.P[FirmType.Aprime] - eqm.P[FirmType.A], (p.K + eqm.pi),
+        rel_tol=EQM_REL_TOL, abs_tol=EQM_ABS_TOL
+    ), "Diff in Obligation Buyer Share Price Does Not Equal K + pi"
+
+
 def no_entry_allocation_only(NewEqm, params):
     e, p = NewEqm, params
     assert math.isclose(
@@ -69,8 +96,13 @@ def check_eqm(NewEqm, params):
     # 2. No entry conditions
     if e.regime == "transformation_corner_obs_trading":
         no_entry_corner_obs_trading(NewEqm, params)
+    if e.regime == "transformation_interior_obs_trading":
+        pass
+    if e.regime == "transformation_options_trading":
+        pass
     if e.regime == "allocation_only":
         no_entry_allocation_only(NewEqm, params)
+
 
     # 3. Investor allocation clearing
     for f in e.active_firms:

@@ -10,8 +10,6 @@ from sust_inv_code.src.equilibrium import solve_equilibrium
 from sust_inv_code.src.tests import check_eqm
 from sust_inv_code.src.results import compute_results
 
-PrintBool = False
-
 def run_model(params: ModelParams):
     print("Starting model run.")
     EqmAlloc, EqmTransform = solve_equilibrium(params)
@@ -34,15 +32,19 @@ if __name__ == "__main__":
     corner_ob_params = ModelParams(Ig=30, In=30, Is=30, K=0.9, T=0.5, tau=1.0, mu_c = 5.0, mu_d = 5.0,
                         sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
                         Nc=50, Nd=50)
+    
+    options_params = ModelParams(Ig=30, In=30, Is=100, K=0.5, T=0.3, tau=1.0, mu_c = 5.0, mu_d = 5.0,
+                        sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
+                        Nc=100, Nd=50)
+
 
     interior_ob_params = ModelParams(Ig=30, In=30, Is=30, K=1.0, T=0.8, tau=1.0, mu_c = 5.0, mu_d = 5.0,
                         sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
                         Nc=50, Nd=50)
         
-    options_params = ModelParams(Ig=30, In=30, Is=100, K=0.5, T=0.3, tau=1.0, mu_c = 5.0, mu_d = 5.0,
-                        sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
-                        Nc=100, Nd=50)
-    results_allocation, results_transformation = run_model(options_params)
+    # results_allocation, results_transformation = run_model(options_params)
+    results_allocation, results_transformation = run_model(interior_ob_params)
+    # results_allocation, results_transformation = run_model(corner_ob_params)
 
     # Pairwise Report
     print("-----------------------------------------")
