@@ -5,10 +5,21 @@ from dataclasses import replace
 from sust_inv_code.src.main import run_model
 from sust_inv_code.src.data_structures import ModelParams, FirmType, InvestorType
 
-base = ModelParams(Ig=30, In=30, Is=30, K=0.9, T=0.5, tau=1.0, mu_c = 5.0, mu_d = 5.0,
-                        sigma_c=1.0, sigma_d=1.0, sigma_cd=0.00,
-                        Nc=50, Nd=50)
+corner_ob_params = ModelParams(Ig=30, In=30, Is=30, K=0.9, T=0.5, tau=1.0, mu_c = 5.0, mu_d = 5.0,
+                    sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
+                    Nc=50, Nd=50)
 
+interior_ob_params = ModelParams(Ig=30, In=30, Is=30, K=1.0, T=0.8, tau=1.0, mu_c = 5.0, mu_d = 5.0,
+                    sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
+                    Nc=50, Nd=50)
+    
+options_params = ModelParams(Ig=30, In=30, Is=100, K=0.5, T=0.3, tau=1.0, mu_c = 5.0, mu_d = 5.0,
+                    sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
+                    Nc=100, Nd=50)
+
+base = corner_ob_params
+
+# Is_values = np.linspace(100, 150, 100)
 Is_values = np.linspace(30, 60, 100)
 
 a_reformed_real_assets = []
@@ -54,7 +65,6 @@ for ns in Is_values:
     t_n_welfare.append(t.investor_welfare[InvestorType.n])
     t_g_welfare.append(t.investor_welfare[InvestorType.g])
     t_s_welfare.append(t.investor_welfare[InvestorType.s])
-
 
 plt.plot(Is_values, a_reformed_real_assets, label='Reformed Real Assets (Allocation Only)')
 plt.plot(Is_values, a_secondary_traded_assets, label='Secondary Traded Assets (Allocation Only)')

@@ -80,7 +80,7 @@ def check_eqm(NewEqm, params):
             e.N[f],
             rel_tol=EQM_REL_TOL,
             abs_tol=EQM_ABS_TOL,
-        ), f"{f.value} firms investor allocation does not clear - LOOP"
+        ), f"{f.value} firms investor allocation does not clear: {investor_demand} != {e.N[f]}"
     
     # 4. If has reform exchange, check clearing
     if e.regime == "transformation_corner_obs_trading":
