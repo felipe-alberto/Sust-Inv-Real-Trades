@@ -2,6 +2,7 @@
 # src/main.py
 # TODO: 
 # - Test options-trading regime, (interior) obligations-trading regime, zero obligations trading regime. 
+# - FOUND BUG IN MATHEMATICA missing NA market clearing in zero-options price! Critical to fix to get final code. 
 # - Think about the max's
 # - Should we output 0 or none when firm is non-active? 
 

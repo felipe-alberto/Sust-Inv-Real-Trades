@@ -307,11 +307,51 @@ def zero_price_corporate_choices(params: ModelParams) -> float:
     NAprime = Nc - NA
     NS = 0
 
+    print("Acceptable Firms:")
+    print(NA)
+    print("Indirectly Reforming Firms:")
+    print(NAprime)
     return NA, NAprime, NU, NR, NS, NUprime
 
 def zero_price_share_prices(params: ModelParams) -> float:
+    
+    p = params
+    Ig, In, Is = p.Ig, p.In, p.Is
+    K, T = p.K, p.T
+    tau = p.tau
+    mu_c , mu_d = p.mu_c, p.mu_d
+    sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
+    Nc, Nd = p.Nc, p.Nd
+    phi = p.phi
+    I = p.I
+    Ign = Ig + In
+    
+    PremiumRK = (K / (I * phi)) * (sigma_c**2 - sigma_cd) * (Ign * sigma_d**2 - Ig * sigma_cd)
+    PenaltyRNd = (Nd / (Is * I * tau)) * (Ig * sigma_cd + Is * sigma_d**2)
+    PR = mu_d + PremiumRK - PenaltyRNd
 
-    PA, PAprime, PU, PR, PS, PUprime = 0, 0, 0, 0, 0, 0
+    PolyD = (- Ig * sigma_c**2 * sigma_cd + 2 * Ig * sigma_cd**2 + In * sigma_cd**2 - Is * sigma_c**2 * sigma_d**2 
+             - Ig * sigma_cd * sigma_d**2 - In * sigma_cd * sigma_d**2)
+    PremiumDK = (K / (I * phi))*(PolyD)
+    PenaltyDND = (Nd / (I * tau)) * ((Ig * sigma_cd + Is * sigma_d**2)/Is)
+    PD = mu_d + PremiumDK - PenaltyDND
+
+    PU = PD
+    PUprime = PD
+    PS = 0
+
+    PenaltyAK = - (K / (I * phi))*(- Ig * sigma_c**4 + 2 * Ig * sigma_c**2 * sigma_cd + In * sigma_c**2 * sigma_cd + Is * sigma_cd**2 - 
+                                   Ig * sigma_c**2 * sigma_d**2 - Is * sigma_c**2 * sigma_d**2 - In * sigma_c**2 * sigma_d**2)
+    PenaltyANd = (Nd / (I * tau)) * ((Ig * sigma_c**2 + Is * sigma_cd)/Is)
+    print("FLAG")
+    print(PenaltyAK)
+    print(PenaltyANd)
+    PA = mu_c - PenaltyAK - PenaltyANd
+    print(PA)
+    
+    PenaltyAprimeK = (K / (I * phi)) * (sigma_c**2 - sigma_cd) * (Ig * sigma_c**2 - Ign * sigma_cd)
+    PenaltyAprimeNd = (Nd / (I * tau)) * ((Ig * sigma_c**2 + Is * sigma_cd)/Is)
+    PAprime = mu_c - PenaltyAprimeK - PenaltyAprimeNd
     return PA, PAprime, PU, PR, PS, PUprime
 
 def zero_price_investor_positions(params: ModelParams) -> float:
@@ -323,12 +363,12 @@ def zero_price_investor_positions(params: ModelParams) -> float:
     PA, PAprime, PU, PR, PS, PUprime = zero_price_share_prices(params)
     PD = PU
     xnA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PD) * sigma_cd)
-    xnD = (tau / phi) * ((mu_d - PD) * sigma_c**2 - (mu_c - PA) * sigma_cd)
-    xgA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PUprime) * sigma_cd)
+    xnU = (tau / phi) * ((mu_d - PD) * sigma_c**2 - (mu_c - PA) * sigma_cd)
+    xgA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PD) * sigma_cd)
     xgUprime = (tau / phi) * ((mu_d - PD) * sigma_c**2 - (mu_c - PA) * sigma_cd)
     xsAprime = (tau / phi) * ((mu_c - PAprime) * sigma_d**2 - (mu_d - PR) * sigma_cd)
     xsR = (tau / phi) * ((mu_d - PR) * sigma_c**2 - (mu_c - PAprime) * sigma_cd)
-    xnU, xgS = xnD, 0       # SOMETHING WEIRD HERE
+    xgS = 0       # SOMETHING WEIRD HERE
     return xnA, xnU, xgA, xgS, xgUprime, xsAprime, xsR
 
 # ----- Main solver ---------------------------------------------------------
@@ -568,7 +608,6 @@ def solve_equilibrium(params: ModelParams) -> tuple[EquilibriumAllocationOnly, E
                 },
                 InvestorType.g: {
                     FirmType.A: xgA,
-                    FirmType.S: xgS,
                     FirmType.Uprime: xgUprime,
                 },
                 InvestorType.s: {
@@ -581,8 +620,12 @@ def solve_equilibrium(params: ModelParams) -> tuple[EquilibriumAllocationOnly, E
                 P=P,
                 X=X,
                 pi=0.0,
-                active_firms=set(),
-                active_links={},
+                active_firms={FirmType.A, FirmType.Aprime, FirmType.R, FirmType.Uprime, FirmType.U},
+                active_links={
+                    InvestorType.n: {FirmType.A, FirmType.Uprime, FirmType.U},
+                    InvestorType.g: {FirmType.A, FirmType.Uprime},
+                    InvestorType.s: {FirmType.Aprime, FirmType.R},
+                },
                 regime=regime,
             )
 
