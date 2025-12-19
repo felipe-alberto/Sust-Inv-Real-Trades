@@ -66,7 +66,6 @@ def no_entry_options_trading(NewEqm, params):
         rel_tol=EQM_REL_TOL, abs_tol=EQM_ABS_TOL
     ), "Diff in Obligation Buyer Share Price Does Not Equal K + pi"
 
-
 def no_entry_allocation_only(NewEqm, params):
     e, p = NewEqm, params
     assert math.isclose(
@@ -97,12 +96,11 @@ def check_eqm(NewEqm, params):
     if e.regime == "transformation_corner_obs_trading":
         no_entry_corner_obs_trading(NewEqm, params)
     if e.regime == "transformation_interior_obs_trading":
-        pass
+        no_entry_interior_obs_trading(NewEqm, params)
     if e.regime == "transformation_options_trading":
-        pass
+        no_entry_options_trading(NewEqm, params)
     if e.regime == "allocation_only":
         no_entry_allocation_only(NewEqm, params)
-
 
     # 3. Investor allocation clearing
     for f in e.active_firms:
@@ -114,8 +112,10 @@ def check_eqm(NewEqm, params):
             abs_tol=EQM_ABS_TOL,
         ), f"{f.value} firms investor allocation does not clear: {investor_demand} != {e.N[f]}"
     
-    # 4. If has reform exchange, check clearing
-    if e.regime == "transformation_corner_obs_trading":
+    # 4. If reform exchange, check clearing
+    if (e.regime == "transformation_corner_obs_trading"
+        or e.regime == "transformation_interior_obs_trading"
+        or e.regime == "transformation_options_trading"):
         assert math.isclose(
             e.N[FirmType.Uprime],
             e.N[FirmType.Aprime],

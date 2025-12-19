@@ -2,6 +2,7 @@
 # src/main.py
 # TODO: 
 # - Test options-trading regime, (interior) obligations-trading regime, zero obligations trading regime. 
+# - Think about the max's
 # - Should we output 0 or none when firm is non-active? 
 
 from sust_inv_code.src.data_structures import ModelParams, FirmType, InvestorType
@@ -41,9 +42,13 @@ if __name__ == "__main__":
     interior_ob_params = ModelParams(Ig=30, In=30, Is=30, K=1.0, T=0.8, tau=1.0, mu_c = 5.0, mu_d = 5.0,
                         sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
                         Nc=50, Nd=50)
+    
+    zero_price_params = ModelParams(Ig=30, In=30, Is=30, K=0.5, T=0.3, tau=1.0, mu_c = 5.0, mu_d = 5.0,
+                    sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
+                    Nc=100, Nd=50)
         
-    # results_allocation, results_transformation = run_model(options_params)
-    results_allocation, results_transformation = run_model(interior_ob_params)
+    results_allocation, results_transformation = run_model(zero_price_params)
+    # results_allocation, results_transformation = run_model(interior_ob_params)
     # results_allocation, results_transformation = run_model(corner_ob_params)
 
     # Pairwise Report
@@ -59,6 +64,21 @@ if __name__ == "__main__":
     print("Reformed Assets: " + str(results_transformation.reformed_assets))
     print("Secondary Traded Assets: " + str(results_transformation.secondary_trading))
     print("Total Market Cap: " + str(results_transformation.market_capitalization))
+    print("-----------------------------------------")
+    print("Comparative Statics:")
+    print("Welfare Improvement: " + str(
+        (results_transformation.risk_adjusted_welfare - results_allocation.risk_adjusted_welfare)/results_allocation.risk_adjusted_welfare
+        ))
+    print("Increase in Reformed Assets: " + str(
+        (results_transformation.reformed_assets - results_allocation.reformed_assets)/results_allocation.reformed_assets
+        ))
+    print("Increase in Secondary Traded Assets: " + str(
+        (results_transformation.secondary_trading - results_allocation.secondary_trading)/results_allocation.secondary_trading
+        ))
+    print("Increase in Total Market Cap: " + str(
+        (results_transformation.market_capitalization - results_allocation.market_capitalization)/results_allocation.market_capitalization
+        ))
+    print("-----------------------------------------")
 
 
 

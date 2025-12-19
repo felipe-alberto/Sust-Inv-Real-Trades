@@ -17,6 +17,7 @@ options_params = ModelParams(Ig=30, In=30, Is=100, K=0.5, T=0.3, tau=1.0, mu_c =
                     sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
                     Nc=100, Nd=50)
 
+
 base = corner_ob_params
 
 # Is_values = np.linspace(100, 150, 100)

@@ -28,6 +28,8 @@ def detect_regime(params: ModelParams, pi_op: float, pi_ob: float):
             return("transformation_options_trading")
     else:
         print("Undiagnosed Instance Detected")
+        print("pi_op: ", pi_op)
+        print("pi_ob: ", pi_ob)
         return "transformation_undiagnosed"
 
 def alloc_only_corporate_choices(params: ModelParams):
@@ -286,6 +288,49 @@ def options_trading_investor_positions(params: ModelParams, pi_op) -> float:
     xnU, xgS = 0, 0
     return xnA, xnUprime, xgA, xgS, xgUprime, xsAprime, xsR
 
+def zero_price_corporate_choices(params: ModelParams) -> float:
+
+    p = params
+    Ig, In, Is = p.Ig, p.In, p.Is
+    K, T = p.K, p.T
+    tau = p.tau
+    sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
+    Nc, Nd = p.Nc, p.Nd
+    phi = p.phi
+    I = p.I
+    Ign = Ig + In
+
+    NU = (In / I) * (Nd + Is * K * (tau / phi) * (sigma_d**2 - sigma_cd))
+    NUprime = (Ig / I) * (Nd + Is * K * (tau / phi) * (sigma_d**2 - sigma_cd))
+    NR = (Is / I) * (Nd - Ign * K * (tau / phi) * (sigma_d**2 - sigma_cd))
+    NA = (Ign / I)* (Nc + (Is * Nc - Ig * Nd)/ (Ign) - (Ig * Is * K *(sigma_c**2 - sigma_cd)* tau) / (Ign * phi))
+    NAprime = Nc - NA
+    NS = 0
+
+    return NA, NAprime, NU, NR, NS, NUprime
+
+def zero_price_share_prices(params: ModelParams) -> float:
+
+    PA, PAprime, PU, PR, PS, PUprime = 0, 0, 0, 0, 0, 0
+    return PA, PAprime, PU, PR, PS, PUprime
+
+def zero_price_investor_positions(params: ModelParams) -> float:
+    p = params
+    tau = p.tau
+    mu_c , mu_d = p.mu_c, p.mu_d
+    sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
+    phi = p.phi
+    PA, PAprime, PU, PR, PS, PUprime = zero_price_share_prices(params)
+    PD = PU
+    xnA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PD) * sigma_cd)
+    xnD = (tau / phi) * ((mu_d - PD) * sigma_c**2 - (mu_c - PA) * sigma_cd)
+    xgA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PUprime) * sigma_cd)
+    xgUprime = (tau / phi) * ((mu_d - PD) * sigma_c**2 - (mu_c - PA) * sigma_cd)
+    xsAprime = (tau / phi) * ((mu_c - PAprime) * sigma_d**2 - (mu_d - PR) * sigma_cd)
+    xsR = (tau / phi) * ((mu_d - PR) * sigma_c**2 - (mu_c - PAprime) * sigma_cd)
+    xnU, xgS = xnD, 0       # SOMETHING WEIRD HERE
+    return xnA, xnU, xgA, xgS, xgUprime, xsAprime, xsR
+
 # ----- Main solver ---------------------------------------------------------
 
 def solve_equilibrium(params: ModelParams) -> tuple[EquilibriumAllocationOnly, EquilibriumAllocationTransformation]:
@@ -485,13 +530,59 @@ def solve_equilibrium(params: ModelParams) -> tuple[EquilibriumAllocationOnly, E
                 N=N,
                 P=P,
                 X=X,
-                pi=-pi_op,
+                pi=pi_op,
                 active_firms={FirmType.A, FirmType.Aprime, FirmType.R, FirmType.Uprime},
                 active_links={
                     InvestorType.n: {FirmType.A, FirmType.Uprime},
                     InvestorType.g: {FirmType.A, FirmType.Uprime},
                     InvestorType.s: {FirmType.Aprime, FirmType.R},
                 },
+                regime=regime,
+            )
+    # 3.4 Undiagnosed or Zero-Price Case
+    if regime == "transformation_undiagnosed":
+        NA, NAprime, NU, NR, NS, NUprime = zero_price_corporate_choices(params)      #  Zero Price Corporate Choices 
+        PA, PAprime, PU, PR, PS, PUprime = zero_price_share_prices(params)           #  Zero Price Share Prices
+        xnA, xnU, xgA, xgS, xgUprime, xsAprime, xsR = zero_price_investor_positions(params)    #  Zero Price Investor Positions
+        N = {
+                FirmType.A: NA,
+                FirmType.Aprime: NAprime,
+                FirmType.U: NU,
+                FirmType.R: NR,
+                FirmType.S: NS,
+                FirmType.Uprime: NUprime,
+            }
+        P = {
+                FirmType.A: PA,
+                FirmType.Aprime: PAprime,
+                FirmType.U: PU,
+                FirmType.R: PR,
+                FirmType.S: PS,
+                FirmType.Uprime: PUprime,
+            }
+
+        X = {
+                InvestorType.n: {
+                    FirmType.A: xnA,
+                    FirmType.U: xnU,
+                },
+                InvestorType.g: {
+                    FirmType.A: xgA,
+                    FirmType.S: xgS,
+                    FirmType.Uprime: xgUprime,
+                },
+                InvestorType.s: {
+                    FirmType.Aprime: xsAprime,
+                    FirmType.R: xsR,
+                },
+            }
+        EqmTransform = EquilibriumAllocationTransformation(
+                N=N,
+                P=P,
+                X=X,
+                pi=0.0,
+                active_firms=set(),
+                active_links={},
                 regime=regime,
             )
 
