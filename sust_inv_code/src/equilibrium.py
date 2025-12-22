@@ -296,15 +296,16 @@ def zero_price_corporate_choices(params: ModelParams) -> float:
     tau = p.tau
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     Nc, Nd = p.Nc, p.Nd
-    phi = p.phi
+    psi, phi = p.psi, p.phi
     I = p.I
     Ign = Ig + In
 
-    NU = (In / I) * (Nd + Is * K * (tau / phi) * (sigma_d**2 - sigma_cd))
-    NUprime = (Ig / I) * (Nd + Is * K * (tau / phi) * (sigma_d**2 - sigma_cd))
-    NR = (Is / I) * (Nd - Ign * K * (tau / phi) * (sigma_d**2 - sigma_cd))
-    NA = (Ign / I)* (Nc + (Is * Nc - Ig * Nd)/ (Ign) - (Ig * Is * K *(sigma_c**2 - sigma_cd)* tau) / (Ign * phi))
-    NAprime = Nc - NA
+    # Eqs: Zero-Price Corporate Choice
+    NA = (Ign / I)* (Nc + Is * K * (sigma_d**2 - sigma_cd) * tau / phi)
+    NAprime = (Is / I ) * (Nc - Ign * K * (sigma_d**2 - sigma_cd) * tau / phi)
+    NUprime = (Is / I ) * (Nc - Ign * K * (sigma_d**2 - sigma_cd) * tau / phi)
+    NU = (Ign / I) * (Nd - Nc * (Is / Ign) + Is * K * psi * tau / phi) 
+    NR = (Is / I) * (Nd - Ign * K * (sigma_c**2 - sigma_cd) * tau / phi)
     NS = 0
 
     print("Acceptable Firms:")
@@ -326,6 +327,7 @@ def zero_price_share_prices(params: ModelParams) -> float:
     I = p.I
     Ign = Ig + In
     
+    """ OLD
     PremiumRK = (K / (I * phi)) * (sigma_c**2 - sigma_cd) * (Ign * sigma_d**2 - Ig * sigma_cd)
     PenaltyRNd = (Nd / (Is * I * tau)) * (Ig * sigma_cd + Is * sigma_d**2)
     PR = mu_d + PremiumRK - PenaltyRNd
@@ -340,36 +342,57 @@ def zero_price_share_prices(params: ModelParams) -> float:
     PUprime = PD
     PS = 0
 
-    PenaltyAK = - (K / (I * phi))*(- Ig * sigma_c**4 + 2 * Ig * sigma_c**2 * sigma_cd + In * sigma_c**2 * sigma_cd + Is * sigma_cd**2 - 
-                                   Ig * sigma_c**2 * sigma_d**2 - Is * sigma_c**2 * sigma_d**2 - In * sigma_c**2 * sigma_d**2)
-    PenaltyANd = (Nd / (I * tau)) * ((Ig * sigma_c**2 + Is * sigma_cd)/Is)
-    print("FLAG")
-    print(PenaltyAK)
-    print(PenaltyANd)
-    PA = mu_c - PenaltyAK - PenaltyANd
-    print(PA)
+    # 
+    # PenaltyAK = - (K / (I * phi))*(- Ig * sigma_c**4 + 2 * Ig * sigma_c**2 * sigma_cd + In * sigma_c**2 * sigma_cd + Is * sigma_cd**2 - 
+    #                               Ig * sigma_c**2 * sigma_d**2 - Is * sigma_c**2 * sigma_d**2 - In * sigma_c**2 * sigma_d**2)
+    # PenaltyANd = (Nd / (I * tau)) * ((Ig * sigma_c**2 + Is * sigma_cd)/Is)
+    # print("FLAG")
+    # print(PenaltyAK)
+    # print(PenaltyANd)
+    # PA = mu_c - PenaltyAK - PenaltyANd
+    # print(PA)
     
     PenaltyAprimeK = (K / (I * phi)) * (sigma_c**2 - sigma_cd) * (Ig * sigma_c**2 - Ign * sigma_cd)
     PenaltyAprimeNd = (Nd / (I * tau)) * ((Ig * sigma_c**2 + Is * sigma_cd)/Is)
     PAprime = mu_c - PenaltyAprimeK - PenaltyAprimeNd
+    """
+
+    # Eqs: Zero Price Share Prices
+    PA = mu_c - K* (Is / I) - Nc * (sigma_c**2) / (I * tau) - Nd * (sigma_cd) / (I * tau)
+    PAprime = mu_c + (Ign / I) * K - Nc * (sigma_c**2) / (I * tau) - Nd * (sigma_cd) / (I * tau)
+    PD = mu_d - K * (Is / I) - Nc * (sigma_cd / (I * tau)) - Nd * (sigma_d**2) / (I * tau)
+    PU = PD 
+    PUprime = PD
+    PR = mu_d + K * (Ign / I) - Nc * (sigma_cd / (I * tau)) - Nd * (sigma_d**2) / (I * tau)
+    PS = 0
     return PA, PAprime, PU, PR, PS, PUprime
 
 def zero_price_investor_positions(params: ModelParams) -> float:
+
     p = params
     tau = p.tau
     mu_c , mu_d = p.mu_c, p.mu_d
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     phi = p.phi
-    PA, PAprime, PU, PR, PS, PUprime = zero_price_share_prices(params)
-    PD = PU
-    xnA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PD) * sigma_cd)
-    xnU = (tau / phi) * ((mu_d - PD) * sigma_c**2 - (mu_c - PA) * sigma_cd)
-    xgA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PD) * sigma_cd)
-    xgUprime = (tau / phi) * ((mu_d - PD) * sigma_c**2 - (mu_c - PA) * sigma_cd)
-    xsAprime = (tau / phi) * ((mu_c - PAprime) * sigma_d**2 - (mu_d - PR) * sigma_cd)
-    xsR = (tau / phi) * ((mu_d - PR) * sigma_c**2 - (mu_c - PAprime) * sigma_cd)
-    xgS = 0       # SOMETHING WEIRD HERE
-    return xnA, xnU, xgA, xgS, xgUprime, xsAprime, xsR
+    Nc, Nd = p.Nc, p.Nd
+    In, Ig, Is = p.In, p.Ig, p.Is
+    I = p.I
+    K = p.K
+    psi = p.psi
+    Ign = p.Ig + p.In
+    
+    # New
+    xsR = (1/I) * (Nd - K * Ign * tau * (sigma_c**2 - sigma_cd) / phi)
+    xsAprime = (1/I) * (Nc - K * Ign * tau * (sigma_d**2 - sigma_cd) / phi)
+    xnA = (1/I) * (Nc + K * Is * tau * (sigma_d**2 - sigma_cd) / phi) 
+    xnU = (1 / I) * (1 / In) * (Nd * Ign - Nc * Is + K * Is * Ign * psi * tau / phi)
+    poly = - Ig * sigma_c**2 + 2 * Ig * sigma_cd + In * sigma_cd - Ig * sigma_d**2 - In * sigma_d**2
+    xnUprime = (1 / I) * (1 / In) * (Nc * Is - Nd * Ig + Is * K * tau * (poly) / phi)
+    xgUprime = (1/I) * (Nd + Is * K * (sigma_c**2 - sigma_cd) * tau / phi)
+    xgA = (1 / I) * (Nc + Is * K * (sigma_d**2 - sigma_cd) * tau / phi)
+    xgS = 0
+
+    return xnA, xnU, xnUprime, xgA, xgS, xgUprime, xsAprime, xsR
 
 # ----- Main solver ---------------------------------------------------------
 
@@ -583,7 +606,7 @@ def solve_equilibrium(params: ModelParams) -> tuple[EquilibriumAllocationOnly, E
     if regime == "transformation_undiagnosed":
         NA, NAprime, NU, NR, NS, NUprime = zero_price_corporate_choices(params)      #  Zero Price Corporate Choices 
         PA, PAprime, PU, PR, PS, PUprime = zero_price_share_prices(params)           #  Zero Price Share Prices
-        xnA, xnU, xgA, xgS, xgUprime, xsAprime, xsR = zero_price_investor_positions(params)    #  Zero Price Investor Positions
+        xnA, xnU, xnUprime, xgA, xgS, xgUprime, xsAprime, xsR = zero_price_investor_positions(params)    #  Zero Price Investor Positions
         N = {
                 FirmType.A: NA,
                 FirmType.Aprime: NAprime,
@@ -605,6 +628,7 @@ def solve_equilibrium(params: ModelParams) -> tuple[EquilibriumAllocationOnly, E
                 InvestorType.n: {
                     FirmType.A: xnA,
                     FirmType.U: xnU,
+                    FirmType.Uprime : xnUprime,
                 },
                 InvestorType.g: {
                     FirmType.A: xgA,

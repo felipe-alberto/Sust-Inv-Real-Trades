@@ -15,6 +15,9 @@ def investor_population(investor: InvestorType, params) -> float:
     }[investor]
 
 def investor_market_clearing_for_firm(firm, eqm, params):
+    for i, firm_set in eqm.active_links.items():
+        if firm in firm_set:
+            print(f"Investor {i.value} holds {investor_population(i, params) * eqm.X[i].get(firm, 0.0)} of firm {firm.value}")
     return sum(
         investor_population(i, params) * eqm.X[i].get(firm, 0.0)
         for i, firm_set in eqm.active_links.items()
@@ -81,6 +84,11 @@ def check_eqm(NewEqm, params):
     e, p = NewEqm, params
 
     # 1. Firm corporate choice clearing 
+    for f in {FirmType.U, FirmType.R, FirmType.S, FirmType.Uprime}:
+        if f not in e.active_firms:
+            print(f"{f.value} firms: 0")
+        else:
+            print(f"{f.value} firms: {e.N[f]}")
     d_firms = sum(e.N[f]
                     for f in {FirmType.U, FirmType.R, FirmType.S, FirmType.Uprime}
                         if f in e.active_firms)
