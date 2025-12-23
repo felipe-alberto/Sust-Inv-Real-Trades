@@ -38,6 +38,8 @@ a_s_welfare = []
 a_firm_market_cap = []
 a_clean_market_cap = []
 a_dirty_market_cap = []
+a_firm_net_value = []
+a_net_market_cap = []
 
 t_reformed_real_assets = []
 t_secondary_traded_assets = []
@@ -50,6 +52,8 @@ t_s_welfare = []
 t_firm_market_cap = []
 t_clean_market_cap = []
 t_dirty_market_cap = []
+t_firm_net_value = []
+t_net_market_cap = []
 
 for ns in Is_values:
     
@@ -69,6 +73,9 @@ for ns in Is_values:
     a_firm_market_cap.append(a.firm_market_cap)
     a_clean_market_cap.append(a.clean_market_cap)
     a_dirty_market_cap.append(a.dirty_market_cap)
+    a_firm_net_value.append(a.firm_net_value)
+    a_net_market_cap.append(a.net_market_cap)
+    
     
     t = results_transformation
     t_reformed_real_assets.append(t.reformed_assets)
@@ -82,6 +89,8 @@ for ns in Is_values:
     t_firm_market_cap.append(t.firm_market_cap)
     t_clean_market_cap.append(t.clean_market_cap)
     t_dirty_market_cap.append(t.dirty_market_cap)
+    t_firm_net_value.append(t.firm_net_value)
+    t_net_market_cap.append(t.net_market_cap)
 
 plt.plot(Is_values, a_reformed_real_assets, label='Reformed Real Assets (Allocation Only)')
 plt.plot(Is_values, a_secondary_traded_assets, label='Secondary Traded Assets (Allocation Only)')
@@ -163,5 +172,23 @@ plt.plot(Is_values, t_dirty_market_cap, label='Dirty Market Cap (+Transformation
 plt.xlabel('Is')
 plt.ylabel('Dirty Market Cap')
 plt.title('Dirty Market Cap vs Is')
+plt.legend()
+plt.show()
+
+for f in FirmType:
+    plt.plot(Is_values, [fm[f] for fm in a_firm_net_value], label=f'Firm {f} Net Value (Allocation Only)')
+    plt.plot(Is_values, [fm[f] for fm in t_firm_net_value], label=f'Firm {f} Net Value (+Transformation)')
+    plt.xlabel('Is')
+    plt.ylabel(f'Firm {f} Net Value')
+    plt.title(f'Firm {f} Net Value vs Is')
+    plt.legend()
+    plt.show()
+
+
+plt.plot(Is_values, a_net_market_cap, label='Net Normal Market Cap (Allocation Only)')
+plt.plot(Is_values, t_net_market_cap, label='Net Normal Market Cap (+Transformation)')
+plt.xlabel('Is')
+plt.ylabel('Net Normal Market Cap')
+plt.title('Net Normal Market Cap vs Is')
 plt.legend()
 plt.show()

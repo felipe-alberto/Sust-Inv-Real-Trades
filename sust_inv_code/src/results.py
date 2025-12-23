@@ -53,6 +53,7 @@ def compute_results(eqm, params):
                             if f in eqm.active_firms)
     n_welfare, g_welfare, s_welfare = compute_risk_adjusted_welfare_vector(eqm, params)
     risk_adjusted_welfare = n_welfare + g_welfare + s_welfare
+    net_welfare = risk_adjusted_welfare - (reformed_assets * params.K + secondary_trading * params.T)
     market_capitalization = sum(eqm.N[f]*eqm.P[f] for f in eqm.active_firms)
     firm_market_cap = {f: eqm.N[f] * eqm.P[f] if f in eqm.active_firms else 0 for f in FirmType}
     clean_market_cap = sum(
@@ -63,6 +64,14 @@ def compute_results(eqm, params):
         eqm.N[f] * eqm.P[f] for f in {FirmType.U, FirmType.S, FirmType.R, FirmType.Uprime}
             if f in eqm.active_firms
     )
+    firm_net_value = {f: (eqm.P[f] 
+                                     - (params.K if f in {FirmType.R} else 0) 
+                                     - (params.T if f in {FirmType.S} else 0)
+                                     + (eqm.pi if f in {FirmType.Uprime} else 0)
+                                     - (eqm.pi + params.K if f in {FirmType.Aprime} else 0)
+                                     ) 
+                        if f in eqm.active_firms else 0 for f in FirmType}
+    net_market_cap = sum(eqm.N[f] * firm_net_value[f] for f in eqm.active_firms) / (params.Nc + params.Nd)
 
     return ModelResults(
         risk_adjusted_welfare=risk_adjusted_welfare,
@@ -75,6 +84,9 @@ def compute_results(eqm, params):
             InvestorType.s: s_welfare
         },
         firm_market_cap=firm_market_cap,
+        firm_net_value=firm_net_value,
         clean_market_cap=clean_market_cap,
-        dirty_market_cap=dirty_market_cap
+        dirty_market_cap=dirty_market_cap,
+        net_market_cap=net_market_cap,
+        net_welfare=net_welfare
         )
