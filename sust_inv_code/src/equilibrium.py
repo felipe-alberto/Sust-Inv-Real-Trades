@@ -33,6 +33,9 @@ def detect_regime(params: ModelParams, pi_op: float, pi_ob: float):
         return "transformation_undiagnosed"
 
 def alloc_only_corporate_choices(params: ModelParams):
+    
+    # Unpack
+
     p = params
     Ig, In, Is = p.Ig, p.In, p.Is
     K, T = p.K, p.T
@@ -41,63 +44,132 @@ def alloc_only_corporate_choices(params: ModelParams):
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
-    KerNU = ((Nd + Is * K * (tau / (sigma_d**2)) - (sigma_cd/sigma_d**2) * Nc * (Is / (Ig+In)))
-    + Ig * T * (tau / sigma_d**2) * ((Is * sigma_cd**2 + (Ig + In) * sigma_c**2 * sigma_d **2)/((Ig + In) * phi)))
-    CoreNU = (In / I) * (KerNU)
-    NU = max(0, CoreNU) 
-    KerNS = ((Nd + Is * K * (tau / (sigma_d**2)) - (sigma_cd/sigma_d**2) * Nc * (Is / (Ig+In)))
-    + Ig * T * (tau / sigma_d**2) * ((Ig * Is * sigma_cd**2 - (Ig + In) * (Is + In)* sigma_c**2 * sigma_d **2)/(Ig*(Ig + In) * phi)))
-    CoreNS = (Ig / I) * (KerNS)
-    NS = max(0, CoreNS)
-    KerNR = (Nd - (Ig + In) * K * (tau / (sigma_d**2)) + (Ig) * T * (tau / (sigma_d**2)) + (sigma_cd / (sigma_d**2))*Nc)
-    CoreNR = (Is / I) * (KerNR)
-    NR = max(0, CoreNR)
+    Igs, Isn, Ign = Ig + Is, Is + In, Ig + In
+    
+    # Lemma 3.1 Eqs: Allocation-Only Corporate Choice
+
     NA = Nc
+
+    Unweighted_NU = (
+        Nd 
+        + Is * K * (tau / sigma_d**2) 
+        + Ig * T * (tau / sigma_d**2) * (
+            (Is * sigma_cd**2 + Ign * sigma_c**2 * sigma_d **2)/(Ign * phi))
+        - (sigma_cd/sigma_d**2) * Nc * (Is / Ign)
+    )
+    Weighted_NU = (In / I) * (Unweighted_NU)
+    NU = max(0, Weighted_NU) 
+
+    Unweighted_NS = (
+        Nd 
+        + Is * K * (tau / sigma_d**2) 
+        + Ig * T * (tau / sigma_d**2) * (
+            (Ig * Is * sigma_cd**2 - Ign * Isn * sigma_c**2 * sigma_d **2)/(Ig*Ign* phi))
+        - (sigma_cd/sigma_d**2) * Nc * (Is / Ign)
+    )
+    Weighted_NS = (Ig / I) * (Unweighted_NS)
+    NS = max(0, Weighted_NS)
+
+    Unweighted_NR = (
+        Nd 
+        - Ign * K * (tau / sigma_d**2) 
+        + Ig * T * (tau / sigma_d**2) 
+        + (sigma_cd / sigma_d**2)*Nc
+    )
+    Weighted_NR = (Is / I) * (Unweighted_NR)
+    NR = max(0, Weighted_NR)
+    
     return NA, NU, NR, NS
 
 def alloc_only_share_prices(params: ModelParams):
+
+    # Unpack
+
     p = params
-    Nc, Nd = p.Nc, p.Nd
-    I, Ig, In, Is = p.I, p.Ig, p.In, p.Is
-    tau = p.tau
-    mu_c , mu_d = p.mu_c, p.mu_d
-    sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
+    Ig, In, Is = p.Ig, p.In, p.Is
     K, T = p.K, p.T
-    Ign = Ig + In       
-    PA = ( mu_c - 
-        (Nc*sigma_c**2 + Nd*sigma_cd)/(I*tau) 
-        - (Is/(Ign*I)) * (Nc/tau) * (sigma_c**2 - sigma_cd**2/sigma_d**2)
-        + (Is/I) * (sigma_cd/sigma_d**2) * (-K + (Ig/Ign)*T))
-    PU = mu_d  - (1/I)* (Is*K + Ig * T  + Nd*(sigma_d**2)/tau +Nc * (sigma_cd/tau))
-    PS = mu_d - (1/I)*(Is * (K - T)   - In * T  +  Nd * (sigma_d**2)/tau    + Nc  * (sigma_cd/tau))
-    PR = mu_d - (1/I)*( - Ig * (K-T)   - In * K  +  Nd * (sigma_d**2)/tau + Nc * (sigma_cd/tau) )
+    tau = p.tau
+    mu_c, mu_d = p.mu_c, p.mu_d
+    sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
+    Nc, Nd = p.Nc, p.Nd
+    phi = p.phi
+    I = p.I
+    Igs, Isn, Ign = Ig + Is, Is + In, Ig + In
+
+    # Lemma 3.2 Eqs: Allocation-Only Share Prices
+
+    PA = (mu_c  - (1 / I) * (
+        + Nc * sigma_c**2 / tau
+        + Nd * sigma_cd / tau 
+        + (Is / Ign) * (Nc / tau) * (sigma_c**2 - sigma_cd**2 / sigma_d**2)
+        + (Is) * (sigma_cd / sigma_d**2) * (K - (Ig / Ign) * T)
+        )
+    )
+    PU = (mu_d  - (1 / I)*(
+        + Nd * sigma_d**2 / tau 
+        + Nc * sigma_cd / tau
+        + Is * K 
+        + Ig * T  
+        )
+    )
+    PS = mu_d - (1 / I)*(
+        + Nd * (sigma_d**2)/tau    
+        + Nc  * (sigma_cd/tau)
+        + Is * (K - T)   
+        - In * T  
+    )
+    PR = mu_d - (1 / I)*(
+        + Nd * (sigma_d**2)/tau 
+        + Nc * (sigma_cd/tau) 
+        - Ig * (K-T)   
+        - In * K  
+    )
+
     return PA, PU, PR, PS
 
 def alloc_only_investor_positions(params: ModelParams):
+
+    # Unpack
     p = params
     tau = p.tau
     mu_c , mu_d = p.mu_c, p.mu_d
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     phi = p.phi
-    PA, PU, PR, PS = alloc_only_share_prices(p)    # FIX
+
+    # Dependency
+    PA, PU, PR, PS = alloc_only_share_prices(p)    
+
+    # Positions (No Lemma)
     xnA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PU) * sigma_cd)
     xnU = (tau / phi) * ((mu_d - PU) * sigma_c**2 - (mu_c - PA) * sigma_cd)
     xgA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PS) * sigma_cd)
     xgS = (tau / phi) * ((mu_d - PS) * sigma_c**2 - (mu_c - PA) * sigma_cd)
     xsR = (tau / (sigma_d**2)) * (mu_d - PR)
+
     return xnA, xnU, xgA, xgS, xsR
 
 def reform_exchange_compute_pi(params: ModelParams) -> float:
+
+    # Unpack
     p = params
     Ig, In, Is = p.Ig, p.In, p.Is
     K, T = p.K, p.T
     tau = p.tau
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     Nc, Nd = p.Nc, p.Nd
+    Isn, Ign = Is + In, Ig + In
+
+    # Eqs: Reform Exchange Prices
     pi_op = - K + (Is *Nc - (Ig + In)* Nd) * (sigma_c**2 * sigma_d**2) / (
     Is * (Ig + In) * (sigma_c**2 + sigma_d**2) * tau)                               # Hardcode sigma_cd = 0
-    pi_ob = (((Is * Nc - Ig * Nd)*(sigma_c**2 * sigma_d**2) - Is * K *(Ig * sigma_c**2 + (Ig + In)* sigma_d**2) * tau)/
-                ((Ig*(Is + In) * sigma_c**2 + Is * (Ig + In)* sigma_d**2)*tau))         # Hardcode sigma_cd = 0
+
+    # Eqs: Reform Exchange Prices
+    pi_ob = (
+    ((Is * Nc - Ig * Nd)*(sigma_c**2 * sigma_d**2 - sigma_cd**2) # Psi Term
+     - Is * K *(Ig * sigma_c**2 + (Ign)* sigma_d**2 - (2 * Ig + In) * sigma_cd) * tau)
+    /
+    ( (Ig*(Isn) * sigma_c**2 - 2 * Ig * Is * sigma_cd + Is * (Ign)* sigma_d**2) * tau )
+                )      
     return pi_op, pi_ob 
 
 def corner_ob_trading_corporate_choices(params: ModelParams) -> float:
@@ -158,6 +230,7 @@ def corner_ob_trading_investor_positions(params: ModelParams) -> float:
     return xnA, xnU, xgA, xgS, xgUprime, xsAprime, xsR
 
 def interior_ob_trading_corporate_choices(params: ModelParams, pi_ob: float) -> float:
+    
     p = params
     Ig, In, Is = p.Ig, p.In, p.Is
     K, T = p.K, p.T
@@ -308,10 +381,10 @@ def zero_price_corporate_choices(params: ModelParams) -> float:
     NR = (Is / I) * (Nd - Ign * K * (sigma_c**2 - sigma_cd) * tau / phi)
     NS = 0
 
-    print("Acceptable Firms:")
-    print(NA)
-    print("Indirectly Reforming Firms:")
-    print(NAprime)
+    # print("Acceptable Firms:")
+    # print(NA)
+    # print("Indirectly Reforming Firms:")
+    # print(NAprime)
     return NA, NAprime, NU, NR, NS, NUprime
 
 def zero_price_share_prices(params: ModelParams) -> float:
