@@ -157,15 +157,17 @@ def reform_exchange_compute_pi(params: ModelParams) -> float:
     tau = p.tau
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     Nc, Nd = p.Nc, p.Nd
-    Isn, Ign = Is + In, Ig + In
+    Ign = Ig + In
+    Isn = Is + In
+    psi = p.psi
+    phi = p.phi
 
-    # Eqs: Reform Exchange Prices
-    pi_op = - K + (Is *Nc - (Ig + In)* Nd) * (sigma_c**2 * sigma_d**2) / (
-    Is * (Ig + In) * (sigma_c**2 + sigma_d**2) * tau)                               # Hardcode sigma_cd = 0
-
-    # Eqs: Reform Exchange Prices
+    # Eqs: Option Price
+    pi_op = (Nc / Ign - Nd / Is) * (phi) / (psi * tau) - K                                
+    
+    # Eqs: Obligation Price
     pi_ob = (
-    ((Is * Nc - Ig * Nd)*(sigma_c**2 * sigma_d**2 - sigma_cd**2) # Psi Term
+    ((Is * Nc - Ig * Nd)*(phi) # Phi Term
      - Is * K *(Ig * sigma_c**2 + (Ign)* sigma_d**2 - (2 * Ig + In) * sigma_cd) * tau)
     /
     ( (Ig*(Isn) * sigma_c**2 - 2 * Ig * Is * sigma_cd + Is * (Ign)* sigma_d**2) * tau )
@@ -338,13 +340,18 @@ def interior_ob_trading_share_prices(params: ModelParams, pi_ob: float) -> float
     return PA, PAprime, PU, PR, PS, PUprime
 
 def interior_ob_trading_investor_positions(params: ModelParams, pi_ob) -> float:
+
+    # Unpack
     p = params
     tau = p.tau
     mu_c , mu_d = p.mu_c, p.mu_d
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     phi = p.phi
+
+    # Dependency
     PA, PAprime, PU, PR, PS, PUprime = interior_ob_trading_share_prices(params, pi_ob)
-    NA, NAprime, NU, NR, NS, NUprime = interior_ob_trading_corporate_choices(params, pi_ob)
+
+    # Positions (No Lemma)
     xnA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PU) * sigma_cd)
     xnU = (tau / phi) * ((mu_d - PU) * sigma_c**2 - (mu_c - PA) * sigma_cd)
     xgA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PUprime) * sigma_cd)
@@ -352,9 +359,12 @@ def interior_ob_trading_investor_positions(params: ModelParams, pi_ob) -> float:
     xsAprime = (tau / phi) * ((mu_c - PAprime) * sigma_d**2 - (mu_d - PR) * sigma_cd)
     xsR = (tau / phi) * ((mu_d - PR) * sigma_c**2 - (mu_c - PAprime) * sigma_cd)
     xgS = 0
+
     return xnA, xnU, xgA, xgS, xgUprime, xsAprime, xsR
 
 def options_trading_corporate_choices(params: ModelParams, pi_op: float) -> float:
+
+    # Unpack
     p = params
     Ig, In, Is = p.Ig, p.In, p.Is
     K, T = p.K, p.T
@@ -363,22 +373,46 @@ def options_trading_corporate_choices(params: ModelParams, pi_op: float) -> floa
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
-    KerNUprime = (Nd + Is * (K + pi_op) *(tau / phi) * (sigma_c**2 - sigma_cd))
-    CoreNUprime = ((In + Ig) / I) * (KerNUprime)
-    NUprime = max(0, CoreNUprime) 
-    KerNR = (Nd - (Ig + In) * (K + pi_op) *(tau / phi) * (sigma_c**2 - sigma_cd))
-    CoreNR = (Is / I) * (KerNR)
-    NR = max(0, CoreNR)
-    KerNA = Nc + Is * (K + pi_op) * (tau / phi) * (sigma_d**2 - sigma_cd)
-    CoreNA = ((Ig + In) / I) * (KerNA)
-    NA = max(0, CoreNA)
-    KerNAPrime = Nc - (Ig + In) * (K + pi_op) * (tau / phi) * (sigma_d**2 - sigma_cd)
-    CoreNAPrime = (Is / I ) * (KerNAPrime)
-    NAprime = max(0, CoreNAPrime)
+    Ign = Ig + In
+
+    # Lemma 3.4: Options Trading Corporate Choice
+
+    Unweighted_NA = (
+        Nc 
+        + Is * (K + pi_op) * (tau / phi) * (sigma_d**2 - sigma_cd)
+    )
+    Weighted_NA = (Ign / I) * (Unweighted_NA)
+    NA = max(0, Weighted_NA)
+
+    Unweighted_NA_Prime = (
+        Nc 
+        - (Ig + In) * (K + pi_op) * (tau / phi) * (sigma_d**2 - sigma_cd)
+    )
+    Weighted_NA_Prime = (Is / I ) * (Unweighted_NA_Prime)
+    NAprime = max(0, Weighted_NA_Prime)
+
+    Unweighted_NU_Prime = (
+        Nd 
+        + Is * (K + pi_op) *(tau / phi) * (sigma_c**2 - sigma_cd)
+    )
+    Weighted_NU_Prime = (Ign/ I) * (Unweighted_NU_Prime)
+
+    NUprime = max(0, Weighted_NU_Prime) 
+
+    Unweighted_NR = (
+        Nd 
+        - Ign * (K + pi_op) *(tau / phi) * (sigma_c**2 - sigma_cd)
+    )
+    Weighted_NR = (Is / I) * (Unweighted_NR)
+    NR = max(0, Weighted_NR)
+
     NU, NS = 0, 0
+
     return NA, NAprime, NU, NR, NS, NUprime
 
 def options_trading_share_prices(params: ModelParams, pi_op: float) -> float:
+    
+    # Unpack
     p = params
     Ig, In, Is = p.Ig, p.In, p.Is
     K, T = p.K, p.T
@@ -388,20 +422,45 @@ def options_trading_share_prices(params: ModelParams, pi_op: float) -> float:
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
-    PA = mu_c - (Nc * sigma_c**2 + Is * (K + pi_op) * tau) / (I * tau) # HARDCODED FOR SIGMA_CD = 0
-    PAprime = mu_c - (Nc * sigma_c**2 - (Ig + In) * (K + pi_op) * tau) / (I * tau) # HARDCODED FOR SIGMA_CD = 0
-    PUprime = mu_d - (Nd * sigma_d**2 + Is * (K + pi_op) * tau) / (I * tau) # HARDCODED FOR SIGMA_CD = 0
-    PR = mu_d - (Nd * sigma_d**2 - (Ig + In) * (K + pi_op) * tau) / (I * tau) # HARDCODED FOR SIGMA_CD = 0
+
+    # Lemma 3.5 - Eqs: Options Trading Share Prices
+    PA = mu_c - (1 / I) * (
+        + Nc * sigma_c**2 / tau
+        + Nd * sigma_cd / tau
+        + Is * (K + pi_op)
+    )
+    PAprime = mu_c - (1 / I) * (
+        + Nc * sigma_c**2 / tau
+        + Nd * sigma_cd / tau
+        - (Ig + In) * (K + pi_op)
+    )
+    PUprime = mu_d - (1 / I) * (
+        + Nd * sigma_d**2 / tau
+        + Nc * sigma_cd / tau
+        + Is * (K + pi_op)
+    )
+    PR = mu_d - (1 / I) * (
+        + Nd * sigma_d**2 / tau
+        + Nc * sigma_cd / tau
+        - (Ig + In) * (K + pi_op)
+    )
     PU, PS = 0, 0
+    
     return PA, PAprime, PU, PR, PS, PUprime
 
 def options_trading_investor_positions(params: ModelParams, pi_op) -> float:
+    
+    # Unpack
     p = params
     tau = p.tau
     mu_c , mu_d = p.mu_c, p.mu_d
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     phi = p.phi
+
+    # Dependency
     PA, PAprime, PU, PR, PS, PUprime = options_trading_share_prices(params, pi_op)
+
+    # Positions (No Lemma)
     xnA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PUprime) * sigma_cd)
     xnUprime = (tau / phi) * ((mu_d - PUprime) * sigma_c**2 - (mu_c - PA) * sigma_cd)
     xgA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PUprime) * sigma_cd)
@@ -409,6 +468,7 @@ def options_trading_investor_positions(params: ModelParams, pi_op) -> float:
     xsAprime = (tau / phi) * ((mu_c - PAprime) * sigma_d**2 - (mu_d - PR) * sigma_cd)
     xsR = (tau / phi) * ((mu_d - PR) * sigma_c**2 - (mu_c - PAprime) * sigma_cd)
     xnU, xgS = 0, 0
+
     return xnA, xnUprime, xgA, xgS, xgUprime, xsAprime, xsR
 
 def zero_price_corporate_choices(params: ModelParams) -> float:

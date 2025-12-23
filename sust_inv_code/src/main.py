@@ -36,7 +36,7 @@ if __name__ == "__main__":
                         Nc=50, Nd=50)
     
     options_params = ModelParams(Ig=30, In=30, Is=100, K=0.5, T=0.3, tau=1.0, mu_c = 5.0, mu_d = 5.0,
-                        sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
+                        sigma_c=1.0, sigma_d=1.0, sigma_cd=0.05,
                         Nc=100, Nd=50)
 
 
@@ -49,12 +49,12 @@ if __name__ == "__main__":
                     Nc=100, Nd=50)
     
     # check_model_domain(corner_ob_params)   
-    # check_model_domain(options_params)   
-    check_model_domain(interior_ob_params)   
+    check_model_domain(options_params)   
+    # check_model_domain(interior_ob_params)   
     # check_model_domain(zero_price_params)
 
-    results_allocation, results_transformation = run_model(interior_ob_params)
     # results_allocation, results_transformation = run_model(interior_ob_params)
+    results_allocation, results_transformation = run_model(options_params)
     # results_allocation, results_transformation = run_model(corner_ob_params)
 
     # Pairwise Report
