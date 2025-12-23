@@ -10,7 +10,7 @@ corner_ob_params = ModelParams(Ig=30, In=30, Is=30, K=0.9, T=0.5, tau=1.0, mu_c 
                     Nc=50, Nd=50)
 
 interior_ob_params = ModelParams(Ig=30, In=30, Is=30, K=1.0, T=0.8, tau=1.0, mu_c = 5.0, mu_d = 5.0,
-                    sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
+                    sigma_c=1.0, sigma_d=1.0, sigma_cd=0.025,
                     Nc=50, Nd=50)
     
 options_params = ModelParams(Ig=30, In=30, Is=100, K=0.5, T=0.3, tau=1.0, mu_c = 5.0, mu_d = 5.0,
@@ -22,7 +22,7 @@ zero_price_params = ModelParams(Ig=30, In=30, Is=30, K=0.5, T=0.3, tau=1.0, mu_c
                     Nc=100, Nd=50)
 
 
-base = zero_price_params
+base = interior_ob_params
 
 # Is_values = np.linspace(100, 150, 100)
 Is_values = np.linspace(30, 60, 100)

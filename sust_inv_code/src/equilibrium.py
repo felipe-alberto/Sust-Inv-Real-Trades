@@ -288,7 +288,7 @@ def interior_ob_trading_corporate_choices(params: ModelParams, pi_ob: float) -> 
 def interior_ob_trading_share_prices(params: ModelParams, pi_ob: float) -> float:
 
     # Unpack
-    
+
     p = params
     Ig, In, Is = p.Ig, p.In, p.Is
     K, T = p.K, p.T
@@ -298,26 +298,43 @@ def interior_ob_trading_share_prices(params: ModelParams, pi_ob: float) -> float
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
+    Ign = Ig + In
 
-    NA, NAprime, NU, NR, NS, NUprime = interior_ob_trading_corporate_choices(p, pi_ob) # Fixing this now
-    KerPA = NA * (sigma_c**2) + (NU + NUprime) * sigma_cd
-    CorePA = (1/((Ig + In)*tau))*KerPA
-    PA = mu_c - CorePA
-    KerPAprime = NAprime * (sigma_c**2) + NR * sigma_cd
-    CorePAprime = (1 / (Is * tau)) * KerPAprime
-    PAprime = mu_c - CorePAprime
-    KerPU = NA * sigma_cd + NU * (sigma_d**2) + NU * (Ig / In) * (phi / sigma_c**2) + NUprime * (sigma_cd**2 / sigma_c**2)
-    CorePU = (1/((Ig + In)*tau)) * KerPU
-    PU = mu_d - CorePU
+    PA = (mu_c - (1 / I) * (
+        + Nc * sigma_c**2 / tau
+        + Nd * sigma_cd / tau
+        + Is * (K + pi_ob)
+    )
+    )
+    PAprime = (mu_c - (1 / I) * (
+        + Nc * sigma_c**2 / tau
+        + Nd * sigma_cd / tau
+        - Ign * (K + pi_ob)
+    )
+    )
+    PU = (mu_d - (1 / I) * (
+        + Nd * sigma_d**2 / tau
+        + Nc * sigma_cd / tau
+        + Is * K
+        - Ig * pi_ob
+    )
+    )
+    PUprime = (mu_d - (1 / I) * (
+        + Nd * sigma_d**2 / tau
+        + Nc * sigma_cd / tau
+        + Is * (K + pi_ob)
+        + In * pi_ob
+    )
+    )       
+    PR = (mu_d - (1 / I) * (
+        + Nd * sigma_d**2 / tau
+        + Nc * sigma_cd / tau
+        - In * K
+        - Ig * (K + pi_ob)
+    )
+    )
+    PS = (0)
 
-    # KerPUprime = NA * sigma_cd + NUprime * (sigma_d**2) + NU * (In / Ig) * (phi / sigma_c**2) + NU * (sigma_cd**2 / sigma_c**2)
-    # CorePUprime = (1/((Ig + In) * tau)) * KerPUprime
-    # PUprime = mu_d - CorePUprime
-    PUprime = mu_d + (1 / I) * (- Is * K - (Is + In) * pi_ob - Nd * (sigma_d**2 / tau) - Nc * (sigma_cd / tau))
-    KerPR = NAprime * sigma_cd + NR * (sigma_d**2) 
-    CorePR = (1/(Is * tau)) * KerPR
-    PR = mu_d - CorePR
-    PS = 0
     return PA, PAprime, PU, PR, PS, PUprime
 
 def interior_ob_trading_investor_positions(params: ModelParams, pi_ob) -> float:
