@@ -445,7 +445,7 @@ def options_trading_share_prices(params: ModelParams, pi_op: float) -> float:
         - (Ig + In) * (K + pi_op)
     )
     PU, PS = 0, 0
-    
+
     return PA, PAprime, PU, PR, PS, PUprime
 
 def options_trading_investor_positions(params: ModelParams, pi_op) -> float:
@@ -510,35 +510,6 @@ def zero_price_share_prices(params: ModelParams) -> float:
     I = p.I
     Ign = Ig + In
     
-    """ OLD
-    PremiumRK = (K / (I * phi)) * (sigma_c**2 - sigma_cd) * (Ign * sigma_d**2 - Ig * sigma_cd)
-    PenaltyRNd = (Nd / (Is * I * tau)) * (Ig * sigma_cd + Is * sigma_d**2)
-    PR = mu_d + PremiumRK - PenaltyRNd
-
-    PolyD = (- Ig * sigma_c**2 * sigma_cd + 2 * Ig * sigma_cd**2 + In * sigma_cd**2 - Is * sigma_c**2 * sigma_d**2 
-             - Ig * sigma_cd * sigma_d**2 - In * sigma_cd * sigma_d**2)
-    PremiumDK = (K / (I * phi))*(PolyD)
-    PenaltyDND = (Nd / (I * tau)) * ((Ig * sigma_cd + Is * sigma_d**2)/Is)
-    PD = mu_d + PremiumDK - PenaltyDND
-
-    PU = PD
-    PUprime = PD
-    PS = 0
-
-    # 
-    # PenaltyAK = - (K / (I * phi))*(- Ig * sigma_c**4 + 2 * Ig * sigma_c**2 * sigma_cd + In * sigma_c**2 * sigma_cd + Is * sigma_cd**2 - 
-    #                               Ig * sigma_c**2 * sigma_d**2 - Is * sigma_c**2 * sigma_d**2 - In * sigma_c**2 * sigma_d**2)
-    # PenaltyANd = (Nd / (I * tau)) * ((Ig * sigma_c**2 + Is * sigma_cd)/Is)
-    # print("FLAG")
-    # print(PenaltyAK)
-    # print(PenaltyANd)
-    # PA = mu_c - PenaltyAK - PenaltyANd
-    # print(PA)
-    
-    PenaltyAprimeK = (K / (I * phi)) * (sigma_c**2 - sigma_cd) * (Ig * sigma_c**2 - Ign * sigma_cd)
-    PenaltyAprimeNd = (Nd / (I * tau)) * ((Ig * sigma_c**2 + Is * sigma_cd)/Is)
-    PAprime = mu_c - PenaltyAprimeK - PenaltyAprimeNd
-    """
 
     # Eqs: Zero Price Share Prices
     PA = mu_c - K* (Is / I) - Nc * (sigma_c**2) / (I * tau) - Nd * (sigma_cd) / (I * tau)
@@ -720,6 +691,7 @@ def solve_equilibrium(params: ModelParams) -> tuple[EquilibriumAllocationOnly, E
                     FirmType.R: xsR,
                 },
             }
+        
         EqmTransform = EquilibriumAllocationTransformation(
                 N=N,
                 P=P,
