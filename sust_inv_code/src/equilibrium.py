@@ -231,6 +231,8 @@ def corner_ob_trading_investor_positions(params: ModelParams) -> float:
 
 def interior_ob_trading_corporate_choices(params: ModelParams, pi_ob: float) -> float:
     
+    # Unpack
+
     p = params
     Ig, In, Is = p.Ig, p.In, p.Is
     K, T = p.K, p.T
@@ -239,25 +241,54 @@ def interior_ob_trading_corporate_choices(params: ModelParams, pi_ob: float) -> 
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
-    KerNU = (Nd + (Is * K - Ig * pi_ob) *(tau / phi) * (sigma_c**2) + sigma_cd * Is * (K + pi_ob)*(tau/phi))
-    CoreNU = (In / I) * (KerNU)
-    NU = max(0, CoreNU) 
-    KerNUprime = Nd + K * Is * (tau / sigma_d**2) + pi_ob * (Is + In) * (tau / sigma_d**2) # HARDCODE SIGMA_CD = 0
-    CoreNUprime = (Ig / I) * (KerNUprime)
-    NUprime = max(0, CoreNUprime)
-    KerNR = (Nd - ((Ig + In) * K + Ig * pi_ob) *(tau / phi) * (sigma_c**2) + sigma_cd * (Ig + In)*(K + pi_ob)*(tau/phi))
-    CoreNR = (Is / I) * (KerNR)
-    NR = max(0, CoreNR)
-    KerNA = Nc + K* Is * (tau / (sigma_d**2)) + pi_ob * Is * (tau / (sigma_d**2)) # HARDCODE SIGMA_CD = 0
-    CoreNA = ((Ig + In) / I) * (KerNA)
-    NA = max(0, CoreNA)
-    KerNAPrime = Nc - K * (Ig + In) * (tau / (sigma_d**2)) - pi_ob * (Ig + In) *(tau / (sigma_d**2)) # HARDCODE SIGMA_CD = 0
-    CoreNAPrime = (Is / I ) * (KerNAPrime)
-    NAprime = max(0, CoreNAPrime)
+    Ign = Ig + In
+    Isn = Is + In
+
+    # Lemma 3.7
+
+    Unweighted_NA = (Nc 
+                    + K * Is * (tau / phi) * (sigma_d**2 - sigma_cd)
+                    + pi_ob * Is * (tau / phi) * (sigma_d**2  - sigma_cd * (Ig / Ign)) 
+    )
+    Weighted_NA = ((Ig + In) / I) * (Unweighted_NA)
+    NA = max(0, Weighted_NA)
+
+    Unweighted_NA_Prime = (Nc 
+                        - K * Ign * (tau / phi) * (sigma_d**2 - sigma_cd) 
+                        - pi_ob * Ign * (tau / phi) * ( sigma_d**2  - sigma_cd * (Ig/Ign))
+    ) 
+    Weighted_NA_Prime = (Is / I ) * (Unweighted_NA_Prime)
+    NAprime = max(0, Weighted_NA_Prime)
+
+    Unweighted_NU = (Nd 
+                    + K * Is * (tau / phi) * (sigma_c**2 - sigma_cd)
+                    - pi_ob * Ig * (tau / phi) * (sigma_c**2 + sigma_cd * (Is/Ig))
+    )  
+    Weighted_NU = (In / I) * (Unweighted_NU)
+    NU = max(0, Weighted_NU) 
+
+    Unweighted_NU_Prime = (Nd 
+                    + K * Is * (tau / phi)*(sigma_c**2 - sigma_cd) 
+                    + pi_ob * Isn * (tau / phi) * (sigma_c**2 - sigma_cd * (Is / Isn) )
+    )
+    Weighted_NU_Prime = (Ig / I) * (Unweighted_NU_Prime)
+    NUprime = max(0, Weighted_NU_Prime)
+
+    Unweighted_NR = (Nd 
+                    - K * Ign * (tau / phi) * (sigma_c**2 - sigma_cd)  
+                    - pi_ob * Ig * (tau / phi) * (sigma_c**2 - sigma_cd * (Ign / Ig)) 
+    )
+    Weighted_NR = (Is / I) * (Unweighted_NR)
+    NR = max(0, Weighted_NR)
+  
     NS = 0
+
     return NA, NAprime, NU, NR, NS, NUprime
 
 def interior_ob_trading_share_prices(params: ModelParams, pi_ob: float) -> float:
+
+    # Unpack
+    
     p = params
     Ig, In, Is = p.Ig, p.In, p.Is
     K, T = p.K, p.T
@@ -267,7 +298,8 @@ def interior_ob_trading_share_prices(params: ModelParams, pi_ob: float) -> float
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
-    NA, NAprime, NU, NR, NS, NUprime = interior_ob_trading_corporate_choices(p, pi_ob)
+
+    NA, NAprime, NU, NR, NS, NUprime = interior_ob_trading_corporate_choices(p, pi_ob) # Fixing this now
     KerPA = NA * (sigma_c**2) + (NU + NUprime) * sigma_cd
     CorePA = (1/((Ig + In)*tau))*KerPA
     PA = mu_c - CorePA
@@ -277,6 +309,7 @@ def interior_ob_trading_share_prices(params: ModelParams, pi_ob: float) -> float
     KerPU = NA * sigma_cd + NU * (sigma_d**2) + NU * (Ig / In) * (phi / sigma_c**2) + NUprime * (sigma_cd**2 / sigma_c**2)
     CorePU = (1/((Ig + In)*tau)) * KerPU
     PU = mu_d - CorePU
+
     # KerPUprime = NA * sigma_cd + NUprime * (sigma_d**2) + NU * (In / Ig) * (phi / sigma_c**2) + NU * (sigma_cd**2 / sigma_c**2)
     # CorePUprime = (1/((Ig + In) * tau)) * KerPUprime
     # PUprime = mu_d - CorePUprime
