@@ -25,7 +25,7 @@ def risk_adjusted_return(clean_pos: float, dirty_pos: float, params: ModelParams
     
     return mean_return - risk
 
-def compute_risk_adjusted_welfare_vector(eqm: EquilibriumAllocationOnly, params: ModelParams) -> float:
+def compute_risk_adjusted_returns(eqm: EquilibriumAllocationOnly, params: ModelParams) -> float:
     
     p, e = params, eqm
     
@@ -43,6 +43,18 @@ def compute_risk_adjusted_welfare_vector(eqm: EquilibriumAllocationOnly, params:
     
     return n_welfare, g_welfare, s_welfare
 
+def compute_investor_transfers(eqm: EquilibriumAllocationOnly, params: ModelParams) -> float:
+    p, e = params, eqm
+
+    n_transfers = sum(eqm.X[InvestorType.n][f]*eqm.P[f] for f in eqm.active_links.get(InvestorType.n, set()))
+    n_all_transfers = params.In* n_transfers
+
+    g_transfers = sum(eqm.X[InvestorType.g][f]*eqm.P[f] for f in eqm.active_links.get(InvestorType.g, set()))
+    g_all_transfers = params.Ig* g_transfers
+
+    s_transfers = sum(eqm.X[InvestorType.s][f]*eqm.P[f] for f in eqm.active_links.get(InvestorType.s, set()))
+    s_all_transfers = params.Is* s_transfers
+    return n_all_transfers, g_all_transfers, s_all_transfers
 # ----- Main routine ---------------------------------------------------------
 
 def compute_results(eqm, params):
@@ -51,10 +63,31 @@ def compute_results(eqm, params):
                             if f in eqm.active_firms)
     secondary_trading  = sum(eqm.N[f] for f in {FirmType.S}
                             if f in eqm.active_firms)
-    n_welfare, g_welfare, s_welfare = compute_risk_adjusted_welfare_vector(eqm, params)
-    risk_adjusted_welfare = n_welfare + g_welfare + s_welfare
-    net_welfare = risk_adjusted_welfare - (reformed_assets * params.K + secondary_trading * params.T)
+    
+    n_risk_adjusted, g_risk_adjusted, s_risk_adjusted = compute_risk_adjusted_returns(eqm, params)
+    n_all_transfers, g_all_transfers, s_all_transfers = compute_investor_transfers(eqm, params)
+    risk_adjusted_return = n_risk_adjusted + g_risk_adjusted + s_risk_adjusted
     market_capitalization = sum(eqm.N[f]*eqm.P[f] for f in eqm.active_firms)
+    clean_market_capitalization = sum(eqm.N[f] * eqm.P[f] for f in {FirmType.A, FirmType.Aprime} if f in eqm.active_firms)
+    dirty_market_capitalization = sum(eqm.N[f] * eqm.P[f] for f in {FirmType.U, FirmType.S, FirmType.R, FirmType.Uprime} if f in eqm.active_firms)
+    clean_firms_cost = sum(eqm.N[f] * params.K for f in {FirmType.Aprime} if f in eqm.active_firms)
+    dirty_firms_cost = sum(eqm.N[f] * params.K for f in {FirmType.R} if f in eqm.active_firms)
+    print(market_capitalization)
+    print(n_all_transfers + g_all_transfers + s_all_transfers)
+    import math
+    assert math.isclose(
+    market_capitalization,
+    n_all_transfers + g_all_transfers + s_all_transfers,
+    rel_tol=1e-9,
+    abs_tol=1e-12,
+    ), "Market capitalization does not equal total investor transfers"
+    print("Market capitalization matches total investor transfers.")
+    net_market_cap = market_capitalization / (params.Nc + params.Nd)
+    firm_surplus = market_capitalization - (reformed_assets * params.K + secondary_trading * params.T)
+    clean_firm_surplus = clean_market_capitalization - sum(eqm.N[f] * params.K for f in {FirmType.Aprime} if f in eqm.active_firms)
+    dirty_firm_surplus = dirty_market_capitalization - sum(eqm.N[f] * eqm.P[f] for f in {FirmType.A, FirmType.Aprime} if f in eqm.active_firms)
+    investor_surplus = risk_adjusted_return - market_capitalization
+    total_surplus = risk_adjusted_return - (reformed_assets * params.K + secondary_trading * params.T)
     firm_market_cap = {f: eqm.N[f] * eqm.P[f] if f in eqm.active_firms else 0 for f in FirmType}
     clean_market_cap = sum(
         eqm.N[f] * eqm.P[f] for f in {FirmType.A, FirmType.Aprime}
@@ -71,22 +104,35 @@ def compute_results(eqm, params):
                                      - (eqm.pi + params.K if f in {FirmType.Aprime} else 0)
                                      ) 
                         if f in eqm.active_firms else 0 for f in FirmType}
-    net_market_cap = sum(eqm.N[f] * firm_net_value[f] for f in eqm.active_firms) / (params.Nc + params.Nd)
+
+    investor_surplus_dict = {
+        InvestorType.n: n_risk_adjusted - n_all_transfers,
+        InvestorType.g: g_risk_adjusted - g_all_transfers,
+        InvestorType.s: s_risk_adjusted - s_all_transfers
+    }
 
     return ModelResults(
-        risk_adjusted_welfare=risk_adjusted_welfare,
+        risk_adjusted_return=risk_adjusted_return,
         reformed_assets=reformed_assets,
         secondary_trading=secondary_trading,
         market_capitalization=market_capitalization,
-        investor_welfare= {
-            InvestorType.n: n_welfare,
-            InvestorType.g: g_welfare,
-            InvestorType.s: s_welfare
+        investor_risk_adjusted= {
+            InvestorType.n: n_risk_adjusted,
+            InvestorType.g: g_risk_adjusted,
+            InvestorType.s: s_risk_adjusted
+        },
+        investor_transfers= {
+            InvestorType.n: n_all_transfers,
+            InvestorType.g: g_all_transfers,
+            InvestorType.s: s_all_transfers
         },
         firm_market_cap=firm_market_cap,
         firm_net_value=firm_net_value,
         clean_market_cap=clean_market_cap,
         dirty_market_cap=dirty_market_cap,
         net_market_cap=net_market_cap,
-        net_welfare=net_welfare
+        total_surplus=total_surplus,
+        firm_surplus = firm_surplus,
+        investor_surplus = investor_surplus,
+        investor_surplus_dict = investor_surplus_dict
         )

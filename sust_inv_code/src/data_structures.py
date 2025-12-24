@@ -62,14 +62,19 @@ class EquilibriumAllocationTransformation:
 
 @dataclass
 class ModelResults:
-    risk_adjusted_welfare: float
+    risk_adjusted_return: float
     reformed_assets: float
     secondary_trading: float
     market_capitalization: float
     firm_market_cap: Dict[FirmType, float]
     firm_net_value: Dict[FirmType, float]
-    investor_welfare: Dict[InvestorType, float]
+    investor_risk_adjusted: Dict[InvestorType, float]
+    investor_transfers: Dict[InvestorType, float]
     net_market_cap: float
-    net_welfare: Optional[float] = None
+    total_surplus: Optional[float] = None
+    firm_surplus: Optional[float] = None
+    firm_surplus_dict: Optional[Dict[FirmType, float]] = None
+    investor_surplus: Optional[float] = None
+    investor_surplus_dict: Optional[Dict[InvestorType, float]] = None
     clean_market_cap: Optional[float] = None
     dirty_market_cap: Optional[float] = None
