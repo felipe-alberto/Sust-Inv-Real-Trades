@@ -44,7 +44,9 @@ def alloc_only_corporate_choices(params: ModelParams):
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
-    Igs, Isn, Ign = Ig + Is, Is + In, Ig + In
+    Igs = Ig + Is 
+    Isn = Is + In
+    Ign = Ig + In
     
     # Lemma 3.1 Eqs: Allocation-Only Corporate Choice
 

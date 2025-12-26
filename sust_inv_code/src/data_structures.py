@@ -3,6 +3,19 @@ from typing import Optional
 from typing import Dict, Set
 from dataclasses import dataclass
 
+class FirmType(str, Enum):
+    A = "A"        
+    Aprime = "A'"  
+    U = "U"        
+    R = "R"        
+    S = "S"        
+    Uprime = "U'"  
+
+class InvestorType(str, Enum):
+    g = "g"        
+    n = "n"        
+    s = "s"        
+
 @dataclass
 class ModelParams:
     Ig: float
@@ -27,19 +40,6 @@ class ModelParams:
     @property
     def psi(self) -> float:
         return self.sigma_c**2 - 2 * self.sigma_cd + self.sigma_d**2 
-    
-class FirmType(str, Enum):
-    A = "A"        
-    Aprime = "A'"  
-    U = "U"        
-    R = "R"        
-    S = "S"        
-    Uprime = "U'"  
-
-class InvestorType(str, Enum):
-    g = "g"        
-    n = "n"        
-    s = "s"        
 
 @dataclass
 class EquilibriumAllocationOnly:
@@ -62,6 +62,9 @@ class EquilibriumAllocationTransformation:
 
 @dataclass
 class ModelResults:
+    total_surplus: float
+    firm_surplus: float
+    investor_surplus: float
     risk_adjusted_return: float
     reformed_assets: float
     secondary_trading: float
@@ -71,10 +74,7 @@ class ModelResults:
     investor_risk_adjusted: Dict[InvestorType, float]
     investor_transfers: Dict[InvestorType, float]
     net_market_cap: float
-    total_surplus: Optional[float] = None
-    firm_surplus: Optional[float] = None
     firm_surplus_dict: Optional[Dict[FirmType, float]] = None
-    investor_surplus: Optional[float] = None
     investor_surplus_dict: Optional[Dict[InvestorType, float]] = None
     clean_market_cap: Optional[float] = None
     dirty_market_cap: Optional[float] = None

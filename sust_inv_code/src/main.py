@@ -1,6 +1,7 @@
 
 # src/main.py
 # TODO: 
+# - The pair-wise report, specialize to a different file and explore the diversification effects.
 # - The positive cov case for corner obs and zero prices has not been checked yet. 
 # - Test options-trading regime, (interior) obligations-trading regime, zero obligations trading regime. 
 # - Think about the max's
@@ -60,30 +61,30 @@ if __name__ == "__main__":
     # Pairwise Report
     print("-----------------------------------------")
     print("Market for Real Asset Allocation Only")
-    print("Risk Adjusted Welfare: " + str(results_allocation.risk_adjusted_welfare))
+    print("Total Surplus: " + str(results_allocation.total_surplus))
     print("Reformed Assets: " + str(results_allocation.reformed_assets))
     print("Secondary Traded Assets: " + str(results_allocation.secondary_trading))
     print("Total Market Cap: " + str(results_allocation.market_capitalization))
     print("-----------------------------------------")
     print("Market for Real Asset Allocation and Transformation")
-    print("Risk Adjusted Welfare: " + str(results_transformation.risk_adjusted_welfare))
+    print("Total Surplus: " + str(results_transformation.total_surplus))
     print("Reformed Assets: " + str(results_transformation.reformed_assets))
     print("Secondary Traded Assets: " + str(results_transformation.secondary_trading))
     print("Total Market Cap: " + str(results_transformation.market_capitalization))
     print("-----------------------------------------")
     print("Comparative Statics:")
-    print("Welfare Improvement: " + str(
-        (results_transformation.risk_adjusted_welfare - results_allocation.risk_adjusted_welfare)/results_allocation.risk_adjusted_welfare
-        ))
+    print("Direct Surplus Improvement: " + str(
+        round(100 * (results_transformation.total_surplus - results_allocation.total_surplus) / results_allocation.total_surplus, 2)
+        ) + "%")
     print("Increase in Reformed Assets: " + str(
-        (results_transformation.reformed_assets - results_allocation.reformed_assets)/results_allocation.reformed_assets
-        ))
+        round(100*(results_transformation.reformed_assets - results_allocation.reformed_assets)/results_allocation.reformed_assets, 2
+        )) + "%")
     print("Increase in Secondary Traded Assets: " + str(
-        (results_transformation.secondary_trading - results_allocation.secondary_trading)/results_allocation.secondary_trading
-        ))
-    print("Increase in Total Market Cap: " + str(
-        (results_transformation.market_capitalization - results_allocation.market_capitalization)/results_allocation.market_capitalization
-        ))
+        round(100*(results_transformation.secondary_trading - results_allocation.secondary_trading)/results_allocation.secondary_trading, 2
+        )) + "%")
+    print("Increase in Firm Surplus: " + str(
+        round((results_transformation.firm_surplus - results_allocation.firm_surplus)/results_allocation.firm_surplus, 2
+        )) + "%")
     print("-----------------------------------------")
 
 

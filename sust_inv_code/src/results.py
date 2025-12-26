@@ -16,44 +16,42 @@ def get_clean_dirty_pos(i, eqm):
     
     return clean_pos, dirty_pos
 
-def risk_adjusted_return(clean_pos: float, dirty_pos: float, params: ModelParams) -> float:
+def net_risk_adjusted_return(clean_pos: float, dirty_pos: float, params: ModelParams) -> float:
     
     p = params
-    mean_return = (clean_pos * p.mu_c + dirty_pos * p.mu_d)
-    risk = 1/(2* p.tau)  * (
-        clean_pos**2 * p.sigma_c**2 + dirty_pos**2 * p.sigma_d**2 + 2 * clean_pos * dirty_pos * p.sigma_cd)
-    
-    return mean_return - risk
+    mean_return = clean_pos * p.mu_c + dirty_pos * p.mu_d
+    risk_exposure = 1/(2* p.tau)  * (clean_pos**2 * p.sigma_c**2 + dirty_pos**2 * p.sigma_d**2 + 2 * clean_pos * dirty_pos * p.sigma_cd)
+    return mean_return - risk_exposure
 
 def compute_risk_adjusted_returns(eqm: EquilibriumAllocationOnly, params: ModelParams) -> float:
     
     p, e = params, eqm
     
-    n_clean, n_dirty = get_clean_dirty_pos(InvestorType.n, e)
-    n_risk_adjusted_return = risk_adjusted_return(n_clean, n_dirty, params)
-    n_welfare = p.In * n_risk_adjusted_return
+    n_clean_pos, n_dirty_pos = get_clean_dirty_pos(InvestorType.n, e)
+    n_net_risk_adjusted_return = net_risk_adjusted_return(n_clean_pos, n_dirty_pos, params)
+    n_risk_adjusted_return = p.In * n_net_risk_adjusted_return
 
-    g_clean, g_dirty = get_clean_dirty_pos(InvestorType.g, e)   
-    g_risk_adjusted_return = risk_adjusted_return(g_clean, g_dirty, params)
-    g_welfare = p.Ig * g_risk_adjusted_return
+    g_clean_pos, g_dirty_pos = get_clean_dirty_pos(InvestorType.g, e)   
+    g_net_risk_adjusted_return = net_risk_adjusted_return(g_clean_pos, g_dirty_pos, params)
+    g_risk_adjusted_return = p.Ig * g_net_risk_adjusted_return
 
-    s_clean, s_dirty = get_clean_dirty_pos(InvestorType.s, e)
-    s_risk_adjusted_return = risk_adjusted_return(s_clean, s_dirty, params) 
-    s_welfare = p.Is * s_risk_adjusted_return
+    s_clean_pos, s_dirty_pos = get_clean_dirty_pos(InvestorType.s, e)
+    s_net_risk_adjusted_return = net_risk_adjusted_return(s_clean_pos, s_dirty_pos, params) 
+    s_risk_adjusted_return = p.Is * s_net_risk_adjusted_return
     
-    return n_welfare, g_welfare, s_welfare
+    return n_risk_adjusted_return, g_risk_adjusted_return, s_risk_adjusted_return
 
 def compute_investor_transfers(eqm: EquilibriumAllocationOnly, params: ModelParams) -> float:
     p, e = params, eqm
 
-    n_transfers = sum(eqm.X[InvestorType.n][f]*eqm.P[f] for f in eqm.active_links.get(InvestorType.n, set()))
-    n_all_transfers = params.In* n_transfers
+    normalized_n_transfers = sum(eqm.X[InvestorType.n][f]*eqm.P[f] for f in eqm.active_links.get(InvestorType.n, set()))
+    n_all_transfers = params.In* normalized_n_transfers
 
-    g_transfers = sum(eqm.X[InvestorType.g][f]*eqm.P[f] for f in eqm.active_links.get(InvestorType.g, set()))
-    g_all_transfers = params.Ig* g_transfers
+    normalized_g_transfers = sum(eqm.X[InvestorType.g][f]*eqm.P[f] for f in eqm.active_links.get(InvestorType.g, set()))
+    g_all_transfers = params.Ig* normalized_g_transfers
 
-    s_transfers = sum(eqm.X[InvestorType.s][f]*eqm.P[f] for f in eqm.active_links.get(InvestorType.s, set()))
-    s_all_transfers = params.Is* s_transfers
+    normalized_s_transfers = sum(eqm.X[InvestorType.s][f]*eqm.P[f] for f in eqm.active_links.get(InvestorType.s, set()))
+    s_all_transfers = params.Is* normalized_s_transfers
     return n_all_transfers, g_all_transfers, s_all_transfers
 # ----- Main routine ---------------------------------------------------------
 
