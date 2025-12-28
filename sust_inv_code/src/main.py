@@ -1,6 +1,7 @@
 
 # src/main.py
 # TODO: 
+# - The data structures for eqm can be simplified by making pi an optional argument.
 # - The pair-wise report, specialize to a different file and explore the diversification effects.
 # - The positive cov case for corner obs and zero prices has not been checked yet. 
 # - Test options-trading regime, (interior) obligations-trading regime, zero obligations trading regime. 
@@ -29,7 +30,7 @@ def run_model(params: ModelParams):
         print("Equilibrium conditions satisfied for allocation transformation")
         results_allocation_transformation = compute_results(EqmTransform, params)
     print("Model run complete.")
-    return results_allocation_only, results_allocation_transformation
+    return EqmAlloc, EqmTransform, results_allocation_only, results_allocation_transformation
 
 if __name__ == "__main__":
     corner_ob_params = ModelParams(Ig=30, In=30, Is=30, K=0.9, T=0.5, tau=1.0, mu_c = 5.0, mu_d = 5.0,
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 
 
     interior_ob_params = ModelParams(Ig=30, In=30, Is=30, K=1.0, T=0.8, tau=1.0, mu_c = 5.0, mu_d = 5.0,
-                        sigma_c=1.0, sigma_d=1.0, sigma_cd=0.05,
+                        sigma_c=1.0, sigma_d=1.0, sigma_cd=0.00,
                         Nc=50, Nd=50)
     
     zero_price_params = ModelParams(Ig=30, In=30, Is=30, K=0.5, T=0.3, tau=1.0, mu_c = 5.0, mu_d = 5.0,
@@ -54,7 +55,7 @@ if __name__ == "__main__":
     check_model_domain(interior_ob_params)   
     # check_model_domain(zero_price_params)
 
-    results_allocation, results_transformation = run_model(interior_ob_params)
+    eqm_alloc, eqm_transform, results_allocation, results_transformation = run_model(interior_ob_params)
     # results_allocation, results_transformation = run_model(options_params)
     # results_allocation, results_transformation = run_model(corner_ob_params)
 

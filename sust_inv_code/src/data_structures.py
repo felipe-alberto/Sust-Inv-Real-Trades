@@ -78,3 +78,7 @@ class ModelResults:
     investor_surplus_dict: Optional[Dict[InvestorType, float]] = None
     clean_market_cap: Optional[float] = None
     dirty_market_cap: Optional[float] = None
+    pi: Optional[float] = None
+    investor_mean_returns: Optional[Dict[InvestorType, float]] = None
+    mean_return: Optional[float] = None
+    investor_risk_penalty: Optional[Dict[InvestorType, float]] = None

@@ -102,17 +102,16 @@ def check_eqm(NewEqm, params):
     e, p = NewEqm, params
 
     # 1. Firm corporate choice clearing 
-    """
+    
     for f in {FirmType.U, FirmType.R, FirmType.S, FirmType.Uprime}:
         if f not in e.active_firms:
             print(f"{f.value} firms: 0")
         else:
             print(f"{f.value} firms: {e.N[f]}")
-    print(d_firms, p.Nd)
-    """
     d_firms = sum(e.N[f]
                     for f in {FirmType.U, FirmType.R, FirmType.S, FirmType.Uprime}
                         if f in e.active_firms)
+    print(d_firms, p.Nd)
     assert abs(d_firms- p.Nd) < QTY_TOL, \
         "D-Firm corporate choice does not clear"
     c_firms = sum(e.N[f]

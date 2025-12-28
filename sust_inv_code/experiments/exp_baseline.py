@@ -75,7 +75,7 @@ for ns in Is_values:
     
     params = replace(base, Is=ns)
     
-    results_allocation, results_transformation = run_model(params)
+    eqm_alloc, eqm_transform, results_allocation, results_transformation = run_model(params)
     
     a = results_allocation
     """
