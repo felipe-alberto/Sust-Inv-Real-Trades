@@ -61,6 +61,16 @@ class EquilibriumAllocationTransformation:
     regime: str
 
 @dataclass
+class Equilibrium:
+    N: Dict[FirmType, float]        
+    P: Dict[FirmType, float]        
+    X: Dict[InvestorType, Dict[FirmType, float]]                       
+    active_firms: Set[FirmType]
+    active_links: Dict[InvestorType, Set[FirmType]]
+    regime: str
+    pi : Optional[float] = None
+
+@dataclass
 class ModelResults:
     total_surplus: float
     firm_surplus: float
@@ -82,3 +92,6 @@ class ModelResults:
     investor_mean_returns: Optional[Dict[InvestorType, float]] = None
     mean_return: Optional[float] = None
     investor_risk_penalty: Optional[Dict[InvestorType, float]] = None
+    risk_penalty: Optional[float] = None
+    c_pos_squares: Optional[Dict[InvestorType, float]] = None
+    d_pos_squares: Optional[Dict[InvestorType, float]] = None

@@ -25,6 +25,18 @@ benchmark_difference = []
 a_mean_return = []
 t_mean_return = []
 
+a_risk_penalty = []
+t_risk_penalty = []
+
+a_c_pos_squares = []
+t_c_pos_squares = []
+
+a_d_pos_squares = []
+t_d_pos_squares = []
+
+a_costs = []
+t_costs = []
+
 for ns in Is_values:
     
     params = replace(base, Is=ns)
@@ -36,14 +48,22 @@ for ns in Is_values:
     ea = eqm_alloc
     a_total_surplus.append(a.total_surplus)
     a_mean_return.append(a.mean_return)
+    a_risk_penalty.append(a.risk_penalty)
+    a_costs.append(a.reformed_assets * p.K + a.secondary_trading * p.T)
+    a_c_pos_squares.append(a.c_pos_squares)
+    a_d_pos_squares.append(a.d_pos_squares)
     
     t = results_transformation
     et = eqm_transform
     t_total_surplus.append(t.total_surplus)
     t_mean_return.append(t.mean_return)
+    t_risk_penalty.append(t.risk_penalty)
+    t_costs.append(t.reformed_assets * p.K + t.secondary_trading * p.T)
+    t_c_pos_squares.append(t.c_pos_squares)
+    t_d_pos_squares.append(t.d_pos_squares)
 
     # Something Off Here
-    r_diff = t.risk_adjusted_return - a.risk_adjusted_return
+    r_diff = a.risk_penalty - t.risk_penalty
     r_difference.append(r_diff)
 
     c_diff = (t.reformed_assets * p.K + t.secondary_trading * p.T) - (a.reformed_assets * p.K + a.secondary_trading * p.T)
@@ -75,8 +95,6 @@ for ns in Is_values:
         rel_tol=1e-9,
         abs_tol=1e-12,
     ), "+ Transformation: Market capitalization does not equal total investor transfers"
-
-
 
 
 
@@ -118,4 +136,36 @@ plt.title('Mean Return v Is')
 plt.legend()
 plt.show()
 
+plt.plot(Is_values, a_risk_penalty, label='Risk Penalty (Allocation Only)')
+plt.plot(Is_values, t_risk_penalty, label='Risk Penalty (+Transformation)')
+plt.xlabel('Is')
+plt.ylabel('Risk Penalty')
+plt.title('Risk Penalty v Is')
+plt.legend()
+plt.show()
 
+plt.plot(Is_values, a_costs, label='Total Costs (Allocation Only)')
+plt.plot(Is_values, t_costs, label='Total Costs (+Transformation)')
+plt.xlabel('Is')
+plt.ylabel('Total Costs')
+plt.title('Total Costs v Is')
+plt.legend()
+plt.show()
+
+for it in InvestorType:
+    plt.plot(Is_values, [cps[it] for cps in a_c_pos_squares], label=f'Investor {it} D-Pos2 (Allocation Only)')
+    plt.plot(Is_values, [cps[it] for cps in t_c_pos_squares], label=f'Investor {it} D-Pos2 (+Transformation)')
+    plt.xlabel('Is')
+    plt.ylabel('C Pos Squares')
+    plt.title(f'C Pos Squares {it.value} v Is')
+    plt.legend()
+    plt.show()
+
+for it in InvestorType:
+    plt.plot(Is_values, [dps[it] for dps in a_d_pos_squares], label=f'Investor {it} D-Pos2 (Allocation Only)')
+    plt.plot(Is_values, [dps[it] for dps in t_d_pos_squares], label=f'Investor {it} D-Pos2 (+Transformation)')
+    plt.xlabel('Is')
+    plt.ylabel('D Pos Squares')
+    plt.title(f'D Pos Squares {it.value} v Is')
+    plt.legend()
+    plt.show()
