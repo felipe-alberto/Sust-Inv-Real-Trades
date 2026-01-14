@@ -20,6 +20,12 @@ a_investor_surplus = []
 a_net_investor_surplus = []
 a_investor_surplus_dict = []
 a_investor_transfers = []
+a_firm_costs = []
+a_market_cap = []
+a_clean_cap = []
+a_dirty_cap = []
+a_clean_cost = []
+a_dirty_cost = []
 
 t_total_surplus = []
 t_firm_surplus = []
@@ -27,6 +33,19 @@ t_investor_surplus = []
 t_net_investor_surplus = []
 t_investor_surplus_dict = []
 t_investor_transfers = []
+t_firm_costs = []
+t_market_cap = []
+t_clean_cap = []
+t_dirty_cap = []
+t_clean_cost = []
+t_dirty_cost = []
+
+cost_diff = []
+market_cap_diff = []
+clean_cap_diff = []
+dirty_cap_diff = []
+clean_cost_diff = []
+dirty_cost_diff = []
 
 inequality_LHS = []
 inequality_RHS = []
@@ -45,6 +64,12 @@ for ns in Is_values:
     a_net_investor_surplus.append(a.investor_surplus/params.I)
     a_investor_surplus_dict.append(a.investor_surplus_dict)
     a_investor_transfers.append(a.investor_transfers)
+    a_firm_costs.append(a.reformed_assets * params.K + a.secondary_trading * params.T)
+    a_market_cap.append(a.market_capitalization)
+    a_clean_cap.append(a.clean_market_cap)
+    a_dirty_cap.append(a.dirty_market_cap)
+    a_clean_cost.append(0)
+    a_dirty_cost.append(ea.N[FirmType.R]*params.K + ea.N[FirmType.S] * params.T)
     
     t = results_transformation
     et = eqm_transform
@@ -54,7 +79,20 @@ for ns in Is_values:
     t_net_investor_surplus.append(t.investor_surplus/params.I)
     t_investor_surplus_dict.append(t.investor_surplus_dict)
     t_investor_transfers.append(t.investor_transfers)
+    t_firm_costs.append(t.reformed_assets * params.K + t.secondary_trading * params.T)
+    t_market_cap.append(t.market_capitalization)
+    t_clean_cap.append(t.clean_market_cap)
+    t_dirty_cap.append(t.dirty_market_cap)
+    t_clean_cost.append(et.N[FirmType.Uprime]*params.K)
+    t_dirty_cost.append(et.N[FirmType.R]*params.K)
 
+    cost_diff.append(t_firm_costs[-1] - a_firm_costs[-1])
+    market_cap_diff.append(t_market_cap[-1] - a_market_cap[-1])
+    clean_cap_diff.append(t_clean_cap[-1] - a_clean_cap[-1])
+    clean_cost_diff.append(t_clean_cost[-1] - a_clean_cost[-1])
+    dirty_cap_diff.append(t_dirty_cap[-1] - a_dirty_cap[-1])
+    dirty_cost_diff.append(t_dirty_cost[-1] - a_dirty_cost[-1])
+    
     p = params
     qD = (p.Nd * ( (p.Ig + p.In) * t.pi + p.Ig * p.T)) / p.I
     qC = (p.Nc * ( p.Is * ( p.K + t.pi - (p.Nc / (p.Ig + p.In)) * ( p.sigma_c**2 / p.tau)))) / p.I
@@ -94,10 +132,8 @@ for ns in Is_values:
     ), "+ Transformation: Market capitalization does not equal total investor transfers"
 
 
-
-
-
-
+"""
+# 1. Total Surplus Goes Up
 plt.plot(Is_values, a_total_surplus, label='Total Surplus (Allocation Only)')
 plt.plot(Is_values, t_total_surplus, label='Total Surplus (+Transformation)')
 plt.xlabel('Is')
@@ -106,6 +142,7 @@ plt.title('Total Surplus v Is')
 plt.legend()
 plt.show()
 
+# 2. Firm Surplus Goes Up
 plt.plot(Is_values, a_firm_surplus, label='Firm Surplus (Allocation Only)')
 plt.plot(Is_values, t_firm_surplus, label='Firm Surplus (+Transformation)')
 plt.xlabel('Is')
@@ -114,6 +151,91 @@ plt.title('Firm Surplus vs Is')
 plt.legend()
 plt.show()
 
+# 2.1.1 Firm's Costs Go Up
+plt.plot(Is_values, a_firm_costs, label='Firm Costs (Allocation Only)')
+plt.plot(Is_values, t_firm_costs, label='Firm Costs (+Transformation)')
+plt.xlabel('Is')
+plt.ylabel('Firm Costs')
+plt.title('Firm Costs vs Is')
+plt.legend()
+plt.show()
+
+# 2.1.2 Total Market Value Goes Up
+plt.plot(Is_values, a_market_cap, label='Firm Market Cap (Allocation Only)')
+plt.plot(Is_values, t_market_cap, label='Firm Market Cap (+Transformation)')
+plt.xlabel('Is')
+plt.ylabel('Market Cap')
+plt.title('Market Cap vs Is')
+plt.legend()
+plt.show()
+
+# 2.1.3 Total Market Value Incr More Than Costs
+plt.plot(Is_values, cost_diff, label='Cost Diff')
+plt.plot(Is_values, market_cap_diff, label='Market Cap Diff')
+plt.xlabel('Is')
+plt.ylabel('Diffs')
+plt.title('Diffs vs Is')
+plt.legend()
+plt.show()
+
+# 2.2.1 Clean Firm's Total Market Value Goes Up 
+plt.plot(Is_values, a_clean_cap, label='Clean Market Cap (Allocation Only)')
+plt.plot(Is_values, t_clean_cap, label='Clean Market Cap (+Transformation)')
+plt.xlabel('Is')
+plt.ylabel('Clean Cap')
+plt.title('Clean Cap vs Is')
+plt.legend()
+plt.show()
+
+# 2.2.2 Clean Firm's Total Cost
+plt.plot(Is_values, a_clean_cost, label='Clean Cost (Allocation Only)')
+plt.plot(Is_values, t_clean_cost, label='Clean Cost (+Transformation)')
+plt.xlabel('Is')
+plt.ylabel('Clean Cost')
+plt.title('Clean Cost vs Is')
+plt.legend()
+plt.show()
+
+
+# 2.2.3 Dirty Firm's Total Market Value Goes Up 
+plt.plot(Is_values, a_dirty_cap, label='Dirty Market Cap (Allocation Only)')
+plt.plot(Is_values, t_dirty_cap, label='Dirty Market Cap (+Transformation)')
+plt.xlabel('Is')
+plt.ylabel('Dirty Cap')
+plt.title('Dirty Cap vs Is')
+plt.legend()
+plt.show()
+
+# 2.2.3 Dirty Firm's Total Cost
+plt.plot(Is_values, a_dirty_cost, label='Dirty Cost (Allocation Only)')
+plt.plot(Is_values, t_dirty_cost, label='Dirty Cost (+Transformation)')
+plt.xlabel('Is')
+plt.ylabel('Dirty Cost')
+plt.title('Dirty Cost vs Is')
+plt.legend()
+plt.show()
+
+# 2.2.4 Clean Cap Diff and Cost Diff
+plt.plot(Is_values, clean_cap_diff, label='Clean Cap Diff')
+plt.plot(Is_values, clean_cost_diff, label='Clean Cost Diff')
+plt.xlabel('Is')
+plt.ylabel('Diff')
+plt.title('Diff vs Is')
+plt.legend()
+plt.show()
+
+# 2.2.5 Dirty Cap Diff and Cost Diff
+plt.plot(Is_values, dirty_cap_diff, label='Dirty Cap Diff')
+plt.plot(Is_values, dirty_cost_diff, label='Dirty Cost Diff')
+plt.xlabel('Is')
+plt.ylabel('Diff')
+plt.title('Diff vs Is')
+plt.legend()
+plt.show()
+"""
+
+"""
+
 plt.plot(Is_values, a_investor_surplus, label='Investor Surplus (Allocation Only)')
 plt.plot(Is_values, t_investor_surplus, label='Investor Surplus (+Transformation)')
 plt.xlabel('Is')
@@ -121,42 +243,6 @@ plt.ylabel('Investor Surplus')
 plt.title('Investor Surplus vs Is')
 plt.legend()
 plt.show()
-
-"""
-plt.plot(Is_values, a_net_investor_surplus, label='Net Investor Surplus (Allocation Only)')
-plt.plot(Is_values, t_net_investor_surplus, label='Net Investor Surplus (+Transformation)')
-plt.xlabel('Is')
-plt.ylabel('Net Investor Surplus')
-plt.title('Net Investor Surplus vs Is')
-plt.legend()
-plt.show()
-
-for it in InvestorType:
-    print(it)
-    plt.plot(Is_values, [isd[it] for isd in a_investor_surplus_dict], label=f'Investor {it} Surplus (Allocation Only)')
-    plt.plot(Is_values, [isd[it] for isd in t_investor_surplus_dict], label=f'Investor {it} Surplus (+Transformation)')
-    plt.xlabel('Is')
-    plt.ylabel(f'Investor {it} Surplus')
-    plt.title(f'Investor {it} Surplus vs Is')
-    plt.legend()
-    plt.show()
-
-    if it == InvestorType.s:
-        investor_count = base.Is
-    if it == InvestorType.n:
-        investor_count = base.In
-    if it == InvestorType.g:
-        investor_count = base.Ig
-        
-    plt.plot(Is_values, [isd[it] / investor_count for isd in a_investor_surplus_dict], label=f'Investor {it} Net Surplus (Allocation Only)')
-    plt.plot(Is_values, [isd[it] / investor_count for isd in t_investor_surplus_dict], label=f'Investor {it} Net Surplus (+Transformation)')
-    plt.xlabel('Is')
-    plt.ylabel(f'Investor {it} Net Surplus')
-    plt.title(f'Investor {it} Net Surplus vs Is')
-    plt.legend()
-    plt.show()
-
-    """
 
 plt.plot(Is_values, inequality_LHS, label='Inequality LHS')
 plt.plot(Is_values, inequality_RHS, label='Inequality RHS')
@@ -170,3 +256,6 @@ print("LHS")
 print(inequality_LHS)
 print("RHS")
 print(inequality_RHS)
+
+"""
+

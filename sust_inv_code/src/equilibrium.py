@@ -55,8 +55,8 @@ def alloc_only_corporate_choices(params: ModelParams):
     Unweighted_NU = (
         Nd 
         + Is * K * (tau / sigma_d**2) 
-        + Ig * T * (tau / sigma_d**2) * (
-            (Is * sigma_cd**2 + Ign * sigma_c**2 * sigma_d **2)/(Ign * phi))
+        + Ig * T * (tau ) * (sigma_c**2)/(phi)
+        + Ig * T * (tau / sigma_d**2) * (Is * sigma_cd**2 )/(Ign * phi)
         - (sigma_cd/sigma_d**2) * Nc * (Is / Ign)
     )
     Weighted_NU = (In / I) * (Unweighted_NU)
@@ -98,33 +98,31 @@ def alloc_only_share_prices(params: ModelParams):
     I = p.I
     Igs, Isn, Ign = Ig + Is, Is + In, Ig + In
 
+    # Risk Penalties
+    risk_c = (Nc * sigma_c**2 + Nd * sigma_cd) / (I*tau)
+    risk_d = (Nd * sigma_d**2 + Nc * sigma_cd) / (I*tau)
+
     # Lemma 3.2 Eqs: Allocation-Only Share Prices
 
-    PA = (mu_c  - (1 / I) * (
-        + Nc * sigma_c**2 / tau
-        + Nd * sigma_cd / tau 
-        + (Is / Ign) * (Nc / tau) * (sigma_c**2 - sigma_cd**2 / sigma_d**2)
+    PA = (mu_c  
+          - risk_c 
+          - (1 / I) * (
+        + (Is / Ign) * (Nc / tau) * (sigma_c**2)
+        - (Is / Ign) * (Nc / tau) * (sigma_cd**2 / sigma_d**2)
         + (Is) * (sigma_cd / sigma_d**2) * (K - (Ig / Ign) * T)
         )
     )
-    PU = (mu_d  - (1 / I)*(
-        + Nd * sigma_d**2 / tau 
-        + Nc * sigma_cd / tau
-        + Is * K 
-        + Ig * T  
-        )
+    PU = (mu_d  
+          - risk_d 
+          - (1 / I)*(Is * K + Ig * T )
     )
-    PS = mu_d - (1 / I)*(
-        + Nd * (sigma_d**2)/tau    
-        + Nc  * (sigma_cd/tau)
-        + Is * (K - T)   
-        - In * T  
+    PS = (mu_d 
+          - risk_d 
+          - (1 / I)*(Is * (K - T)   - In * T  )
     )
-    PR = mu_d - (1 / I)*(
-        + Nd * (sigma_d**2)/tau 
-        + Nc * (sigma_cd/tau) 
-        - Ig * (K-T)   
-        - In * K  
+    PR = (mu_d 
+          - risk_d 
+          + (1 / I)*(Ig * (K-T) + In * K  )
     )
 
     return PA, PU, PR, PS
@@ -425,26 +423,26 @@ def options_trading_share_prices(params: ModelParams, pi_op: float) -> float:
     phi = p.phi
     I = p.I
 
+    # Risk Penalties
+    risk_c = (Nc * sigma_c**2 + Nd * sigma_cd) / (I*tau)
+    risk_d = (Nd * sigma_d**2 + Nc * sigma_cd) / (I*tau)
+
     # Lemma 3.5 - Eqs: Options Trading Share Prices
-    PA = mu_c - (1 / I) * (
-        + Nc * sigma_c**2 / tau
-        + Nd * sigma_cd / tau
-        + Is * (K + pi_op)
+    PA = (mu_c   
+        - risk_c
+        - (Is / I) * (K + pi_op)
     )
-    PAprime = mu_c - (1 / I) * (
-        + Nc * sigma_c**2 / tau
-        + Nd * sigma_cd / tau
-        - (Ig + In) * (K + pi_op)
+    PAprime = (mu_c  
+        - risk_c
+        + ((Ig + In) / I) * (K + pi_op)
     )
-    PUprime = mu_d - (1 / I) * (
-        + Nd * sigma_d**2 / tau
-        + Nc * sigma_cd / tau
-        + Is * (K + pi_op)
+    PUprime = (mu_d  
+        - risk_d
+        - (Is / I) * (K + pi_op)
     )
-    PR = mu_d - (1 / I) * (
-        + Nd * sigma_d**2 / tau
-        + Nc * sigma_cd / tau
-        - (Ig + In) * (K + pi_op)
+    PR = (mu_d 
+        - risk_d
+        + ((Ig + In)/ I) * (K + pi_op)
     )
     PU, PS = 0, 0
 
