@@ -1,6 +1,26 @@
+# TODO: There is a superclass Equilibrium - could eliminate the other two classes. Need to check compatibility across.
+# TODO: ModelResults is the reporting class. Should revise whether it is well strucuted (some metrics feel redundant)
+
+
 from sust_inv_code.src.data_structures import ModelParams, ModelResults
 from sust_inv_code.src.data_structures import FirmType, InvestorType
 from sust_inv_code.src.data_structures import EquilibriumAllocationOnly
+
+"""
+Compute and aggregate equilibrium results for the sustainable asset market model.
+This module provides helper routines for extracting investor positions, computing
+risk-adjusted returns and transfers, validating mass conservation, and assembling
+a `ModelResults` object from an equilibrium allocation and model parameters.
+The main entry point is `compute_results(eqm, params)`, which calculates:
+- investor-level positions, returns, penalties, and transfers;
+- aggregate investor metrics;
+- firm-level market capitalization and net values;
+- surplus measures for firms and investors;
+- diagnostic quantities such as squared positions.
+The implementation assumes that the equilibrium object exposes the expected
+fields (`X`, `P`, `N`, `pi`, `active_links`, `active_firms`, and `regime`) and
+that `params` provides the necessary market and preference parameters.
+"""
 
 # ----- Helpers ---------------------------------------------------------
 
@@ -82,6 +102,7 @@ def check_investor_masses(positions, params):
     assert math.isclose(dirty_total, params.Nd, rel_tol=1e-9, abs_tol=1e-12)
 
 # ----- Main routine ---------------------------------------------------------
+"" 
 
 def compute_results(eqm, params):
 
@@ -153,6 +174,7 @@ def compute_results(eqm, params):
 
     # --- Output ---
     return ModelResults(
+
         risk_adjusted_return=total_risk_adj,
         mean_return=total_mean,
         risk_penalty=total_risk_penalty,
@@ -175,5 +197,6 @@ def compute_results(eqm, params):
         c_pos_squares=c_pos_squares,
         d_pos_squares=d_pos_squares,
         pi=eqm.pi if eqm.regime != "allocation_only" else None,
+
     )
 

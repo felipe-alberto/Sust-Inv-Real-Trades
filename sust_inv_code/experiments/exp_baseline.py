@@ -1,3 +1,28 @@
+# TODO:
+# 1. Clean the structure of this code so we can do more dev.
+# 1.1 Check the current execution path while focusing on reporting routines. 
+#   # NOTE: Some of the results included in this routine are:
+        # - Total Surplus 
+        # - Firm Surplus 
+        # - Investor Surplus 
+        # - Net Investor Surplus (revise and compare with prev.)
+        # - Investor Surplus Dict (check dimensionality)
+        # - Investor Transfers (check dimensionality)
+            # NOTE: Other commented results (need to check consistency across different scenarios)
+                # - Reformed Real Assets
+                # - Secondary Traded Assets
+                # - Total Market Capitalization
+                # - Risk-Adjusted Return
+                # - Normalized Risk-Adjusted Welfare
+                # - Investor Welfare by Type
+                # - Firm Market Capitalization
+                # - Clean Market Capitalization
+                # - Dirty Market Capitalization
+                # - Firm Net Value
+                # - Net Market Capitalization
+    # NOTE: For all instances of the model we are solving (i) alloc and (ii) transform.
+        # - I am sure there is a better nomenclature for this. 
+
 # experiments/exp_baseline.py
 import numpy as np
 import matplotlib.pyplot as plt

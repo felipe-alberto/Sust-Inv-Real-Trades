@@ -5,6 +5,23 @@ from dataclasses import replace
 from sust_inv_code.src.main import run_model
 from sust_inv_code.src.data_structures import ModelParams, FirmType, InvestorType
 
+# A script to compare total surplus between two equilibrium regimes:
+# First: Differential Risk Penalties
+# - Compute: For each equilibrium, calculate the risk-adjusted return (full)
+# - Compute: For each equilibrium, calculate the common components (mean return, base risk adjusted)
+# - Compute: For each equilibrium, calculate a differential risk penalty
+# - Check: Verify that the risk-adjusted return is the common components plus the diff risk penalty.
+# - Compute: For the two equilibrium regimes, compute the difference in risk-adjusted return
+# - Compute: For the two equilibrium regimes, compute the difference in the differential risk penalty
+# - Check: Verify that the two differences are indeed equivalent. 
+# - Question: Is the diff risk penalty equivalent for c and d firms in the ops trading eqm.?
+# - Question: Is the diff risk penalty for c firms smaller in the ops trading eqm than in alloc only?
+# - Question: Is the diff risk penalty for d firms smaller in the ops trading eqm than in alloc only? 
+# - Question: What is the total magintude of the difference in diff risk penalties? What are the contributions?
+# Second: Total Cost 
+# - Compute: For each equilibrium, calculate the total cost of reformed and secondary assets
+# - Compute: For the two equilibrium regimes, compute the difference in total cost
+# - Question: What is the total magintude of the difference in total cost? What are the contributions?
 
 options_params = ModelParams(Ig=30, In=30, Is=100, K=0.5, T=0.3, tau=1.0, mu_c = 5.0, mu_d = 5.0,
                         sigma_c=1.0, sigma_d=1.0, sigma_cd=0.00,

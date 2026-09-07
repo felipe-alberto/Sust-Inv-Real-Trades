@@ -1,3 +1,15 @@
+# TODO:
+    # - Update calls and eliminate "equilibrium" (DEPRECATED)
+    # - Carrying over from exp_baseline, focus on reporting structure for now.
+    # - Naming convention needs to change. Need case consistency also. 
+    # - Is it reasonable that solve_equilibrium returns both eqm_alloc and eqm_transform? Consider separating. 
+    # - May need new equilibrium solvers for the policy experiments, that is:
+        # NOTE: Maybe it is reasonable to have a separate module for each equilibrium regime? Easier to debug? 
+        # - CarbonTaxEquilibrium
+            # - Model has the same structure but features an additional input, a tax on pollutive asset operation.
+            # - The equilibrium characterization should be similar but have some differences. 
+        # - TradeTaxEquilibrium
+        # - EmissionsTradingSchemeEquilibrium
 
 # src/main.py
 # TODO: 
@@ -10,19 +22,25 @@
 
 from sust_inv_code.src.data_structures import ModelParams, FirmType, InvestorType
 from sust_inv_code.src.data_structures import EquilibriumAllocationOnly, EquilibriumAllocationTransformation
-from sust_inv_code.src.equilibrium import solve_equilibrium
+from sust_inv_code.src.equilibrium_computation import solve_equilibrium
 from sust_inv_code.src.tests import check_eqm, check_model_domain
 from sust_inv_code.src.results import compute_results
 
 def run_model(params: ModelParams):
+    """
+    Run Alloc and Transform Cases for a given set of model parameters.
+    """
+
     print("Starting model run.")
-    EqmAlloc, EqmTransform = solve_equilibrium(params)
+    EqmAlloc, EqmTransform = solve_equilibrium(params) 
     is_competitive_eqm = check_eqm(EqmAlloc, params)
+
     if not is_competitive_eqm:
         raise ValueError("Equilibrium conditions not satisfied for allocation only.")
     else:
         print("Equilibrium conditions satisfied for allocation only.")
         results_allocation_only = compute_results(EqmAlloc, params)
+
     is_competitive_eqm = check_eqm(EqmTransform, params)
     if not is_competitive_eqm:
         raise ValueError("Equilibrium conditions not satisfied for transformation")
@@ -30,6 +48,7 @@ def run_model(params: ModelParams):
         print("Equilibrium conditions satisfied for allocation transformation")
         results_allocation_transformation = compute_results(EqmTransform, params)
     print("Model run complete.")
+    
     return EqmAlloc, EqmTransform, results_allocation_only, results_allocation_transformation
 
 if __name__ == "__main__":
