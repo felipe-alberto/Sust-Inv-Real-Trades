@@ -102,14 +102,16 @@ def solve_allocation_transformation_equilibrium(params: ModelParams) -> Equilibr
     pi_op, pi_ob = reform_exchange_compute_pi(params)
     regime = detect_regime(params, pi_op, pi_ob)
     if regime == "transformation_corner_obligations_trading":
-        EquilibriumAllocationTransformation = solve_corner_obligations_equilibrium(params, pi_ob)
+        EqmAllocationTransformation = solve_corner_obligations_equilibrium(params, pi_ob)
     elif regime == "transformation_interior_obligations_trading":
-        EquilibriumAllocationTransformation = solve_interior_obligations_equilibrium(params, pi_ob)
+        EqmAllocationTransformation = solve_interior_obligations_equilibrium(params, pi_ob)
     elif regime == "transformation_options_trading":
-        EquilibriumAllocationTransformation = solve_options_trading_equilibrium(params, pi_op)
+        EqmAllocationTransformation = solve_options_trading_equilibrium(params, pi_op)
     elif regime == "transformation_undiagnosed":
-        EquilibriumAllocationTransformation = solve_zero_price_equilibrium(params)
-    return EquilibriumAllocationTransformation
+        EqmAllocationTransformation = solve_zero_price_equilibrium(params)
+    else:
+        raise ValueError("Unrecognized regime detected in equilibrium solve.")
+    return EqmAllocationTransformation
 
 # ----- Solver Helpers ---------------------------------------------------------
 
