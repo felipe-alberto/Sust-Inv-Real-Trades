@@ -28,8 +28,8 @@ CLEAN_FIRMS = {FirmType.A, FirmType.Aprime}
 DIRTY_FIRMS = {FirmType.U, FirmType.S, FirmType.R, FirmType.Uprime}
 INVESTOR_MASS = {
     InvestorType.n: "In",
-    InvestorType.g: "Ig",
-    InvestorType.s: "Is",
+    InvestorType.v: "Iv",
+    InvestorType.m: "Im",
 }
 
 # ----- Subfunctions ---------------------------------------------------------
@@ -130,7 +130,7 @@ def compute_results(eqm, params):
     )
 
     firm_market_cap = {
-        f: eqm.N[f] * eqm.P[f] if f in eqm.active_firms else 0
+        f: eqm.N[f] * eqm.P[f] if f in eqm.active_firms else 0.0
         for f in FirmType
     }
 
@@ -163,12 +163,12 @@ def compute_results(eqm, params):
     firm_net_value = {
         f: (
             eqm.P[f]
-            - (params.K if f == FirmType.R else 0)
-            - (params.T if f == FirmType.S else 0)
-            + (eqm.pi if f == FirmType.Uprime else 0)
-            - (eqm.pi + params.K if f == FirmType.Aprime else 0)
+            - (params.K if f == FirmType.R else 0.0)
+            - (params.T if f == FirmType.S else 0.0)
+            + (eqm.pi if f == FirmType.Uprime else 0.0)
+            - (eqm.pi + params.K if f == FirmType.Aprime else 0.0)
         )
-        if f in eqm.active_firms else 0
+        if f in eqm.active_firms else 0.0
         for f in FirmType
     }
 

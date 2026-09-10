@@ -12,15 +12,15 @@ class FirmType(str, Enum):
     Uprime = "U'"  
 
 class InvestorType(str, Enum):
-    g = "g"        
     n = "n"        
-    s = "s"        
+    v = "v"        
+    m = "m"        
 
 @dataclass
 class ModelParams:
-    Ig: float
     In: float
-    Is: float
+    Iv: float
+    Im: float
     K: float
     T: float
     tau: float
@@ -33,7 +33,7 @@ class ModelParams:
     Nd: float
     @property
     def I(self) -> float:
-        return self.Ig + self.In + self.Is
+        return  self.In + self.Iv + self.Im
     @property
     def phi(self) -> float:
         return self.sigma_c**2 * self.sigma_d**2 - self.sigma_cd**2

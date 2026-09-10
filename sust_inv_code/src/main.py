@@ -52,20 +52,20 @@ def run_model(params: ModelParams):
     return EqmAlloc, EqmTransform, results_allocation_only, results_allocation_transformation
 
 if __name__ == "__main__":
-    corner_ob_params = ModelParams(Ig=30, In=30, Is=30, K=0.9, T=0.5, tau=1.0, mu_c = 5.0, mu_d = 5.0,
+    corner_ob_params = ModelParams(Iv=30, In=30, Im=30, K=0.9, T=0.5, tau=1.0, mu_c = 5.0, mu_d = 5.0,
                         sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
                         Nc=50, Nd=50)
     
-    options_params = ModelParams(Ig=30, In=30, Is=100, K=0.5, T=0.3, tau=1.0, mu_c = 5.0, mu_d = 5.0,
+    options_params = ModelParams(Iv=30, In=30, Im=100, K=0.5, T=0.3, tau=1.0, mu_c = 5.0, mu_d = 5.0,
                         sigma_c=1.0, sigma_d=1.0, sigma_cd=0.05,
                         Nc=100, Nd=50)
 
 
-    interior_ob_params = ModelParams(Ig=30, In=30, Is=30, K=1.0, T=0.8, tau=1.0, mu_c = 5.0, mu_d = 5.0,
+    interior_ob_params = ModelParams(Iv=30, In=30, Im=30, K=1.0, T=0.8, tau=1.0, mu_c = 5.0, mu_d = 5.0,
                         sigma_c=1.0, sigma_d=1.0, sigma_cd=0.00,
                         Nc=50, Nd=50)
     
-    zero_price_params = ModelParams(Ig=30, In=30, Is=30, K=0.5, T=0.3, tau=1.0, mu_c = 5.0, mu_d = 5.0,
+    zero_price_params = ModelParams(Iv=30, In=30, Im=30, K=0.5, T=0.3, tau=1.0, mu_c = 5.0, mu_d = 5.0,
                     sigma_c=1.0, sigma_d=1.0, sigma_cd=0.0,
                     Nc=100, Nd=50)
     

@@ -15,8 +15,8 @@ def check_model_domain(p):
         raise ValueError("sigma_d must be positive")
     if p.I <= 0:
         raise ValueError("Total investor mass I must be positive")
-    if p.Ig + p.In <= 0:
-        raise ValueError("Ign must be positive")
+    if p.Iv + p.In <= 0:
+        raise ValueError("Inv must be positive")
     if p.phi <= 0:
         raise ValueError("phi must be positive")
     else:
@@ -25,9 +25,9 @@ def check_model_domain(p):
     
 def investor_population(investor: InvestorType, params) -> float:
     return {
-        InvestorType.g: params.Ig,
         InvestorType.n: params.In,
-        InvestorType.s: params.Is,
+        InvestorType.v: params.Iv,
+        InvestorType.m: params.Im,
     }[investor]
 
 def investor_market_clearing_for_firm(firm, eqm, params):

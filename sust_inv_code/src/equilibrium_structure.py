@@ -1,4 +1,11 @@
 
+# TODO:
+# 1. There is a naming issue which should be fixed. Update notation for consistency with paper.
+# 2. How does the equilibrium change with a carbon tax?
+# 3. How does the equilibrium change with an emissions-trading scheme? 
+# 4. Is there a consistency issue? In some regimes we are reporting 0 positions for some investor pairs,
+# whereas in others there is no output. A definition should be made for this. 
+
 # Equilibrium Structure
 
 # ----- Imports ---------------------------------------------------------------
@@ -13,46 +20,46 @@ def allocation_only_corporate_choices(params: ModelParams):
     # Unpack
 
     p = params
-    Ig, In, Is = p.Ig, p.In, p.Is
+    In, Iv, Im = p.In, p.Iv, p.Im
     K, T = p.K, p.T
     tau = p.tau
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
-    Isn = Is + In
-    Ign = Ig + In
+    Inm = In + Im
+    Inv = In + Iv
     
     # Lemma 3.1 Eq: Allocation Only Corporate Choice
 
     n_a = Nc
     unweighted_n_u = (
         Nd 
-        + Is * K * (tau / sigma_d**2) 
-        + Ig * T * (tau ) * (sigma_c**2)/(phi)
-        + Ig * T * (tau / sigma_d**2) * (Is * sigma_cd**2 )/(Ign * phi)
-        - (sigma_cd/sigma_d**2) * Nc * (Is / Ign)
+        + Im * K * (tau / sigma_d**2) 
+        + Iv * T * (tau ) * (sigma_c**2)/(phi)
+        + Iv * T * (tau / sigma_d**2) * (Im * sigma_cd**2 )/(Inv * phi)
+        - (sigma_cd/sigma_d**2) * Nc * (Im / Inv)
     )
     weighted_n_u = (In / I) * (unweighted_n_u)
     n_u = max(0, weighted_n_u) 
 
     unweighted_n_s = (
         Nd 
-        + Is * K * (tau / sigma_d**2) 
-        + Ig * T * (tau / sigma_d**2) * (
-            (Ig * Is * sigma_cd**2 - Ign * Isn * sigma_c**2 * sigma_d **2)/(Ig*Ign* phi))
-        - (sigma_cd/sigma_d**2) * Nc * (Is / Ign)
+        + Im * K * (tau / sigma_d**2) 
+        + Iv * T * (tau / sigma_d**2) * (
+            (Iv * Im * sigma_cd**2 - Inv * Inm * sigma_c**2 * sigma_d **2)/(Iv*Inv* phi))
+        - (sigma_cd/sigma_d**2) * Nc * (Im / Inv)
     )
-    weighted_n_s = (Ig / I) * (unweighted_n_s)
+    weighted_n_s = (Iv / I) * (unweighted_n_s)
     n_s = max(0, weighted_n_s)
 
     unweighted_n_r = (
         Nd 
-        - Ign * K * (tau / sigma_d**2) 
-        + Ig * T * (tau / sigma_d**2) 
+        - Inv * K * (tau / sigma_d**2) 
+        + Iv * T * (tau / sigma_d**2) 
         + (sigma_cd / sigma_d**2)*Nc
     )
-    weighted_n_r = (Is / I) * (unweighted_n_r)
+    weighted_n_r = (Im / I) * (unweighted_n_r)
     n_r = max(0, weighted_n_r)
     N = {
         FirmType.A: n_a,
@@ -67,7 +74,7 @@ def allocation_only_share_prices(params: ModelParams):
     # Unpack
 
     p = params
-    Ig, In, Is = p.Ig, p.In, p.Is
+    In, Iv, Im = p.In, p.Iv, p.Im
     K, T = p.K, p.T
     tau = p.tau
     mu_c, mu_d = p.mu_c, p.mu_d
@@ -75,7 +82,7 @@ def allocation_only_share_prices(params: ModelParams):
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
-    Igs, Isn, Ign = Ig + Is, Is + In, Ig + In
+    Ivm, Inm, Inv = Iv + Im, In + Im, In + Iv
 
     # Risk Penalties
     risk_c = (Nc * sigma_c**2 + Nd * sigma_cd) / (I*tau)
@@ -86,22 +93,22 @@ def allocation_only_share_prices(params: ModelParams):
     p_a = (mu_c  
           - risk_c 
           - (1 / I) * (
-        + (Is / Ign) * (Nc / tau) * (sigma_c**2)
-        - (Is / Ign) * (Nc / tau) * (sigma_cd**2 / sigma_d**2)
-        + (Is) * (sigma_cd / sigma_d**2) * (K - (Ig / Ign) * T)
+        + (Im / Inv) * (Nc / tau) * (sigma_c**2)
+        - (Im / Inv) * (Nc / tau) * (sigma_cd**2 / sigma_d**2)
+        + (Im) * (sigma_cd / sigma_d**2) * (K - (Iv / Inv) * T)
         )
     )
     p_u = (mu_d  
           - risk_d 
-          - (1 / I)*(Is * K + Ig * T )
+          - (1 / I)*(Im * K + Iv * T )
     )
     p_s = (mu_d 
           - risk_d 
-          - (1 / I)*(Is * (K - T)   - In * T  )
+          - (1 / I)*(Im * (K - T)   - In * T  )
     )
     p_r = (mu_d 
           - risk_d 
-          + (1 / I)*(Ig * (K-T) + In * K  )
+          + (1 / I)*(Iv * (K-T) + In * K  )
     )
     P = {
         FirmType.A: p_a,
@@ -130,65 +137,68 @@ def allocation_only_investor_positions(params: ModelParams):
     # Positions (No Lemma)
     xnA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PU) * sigma_cd)
     xnU = (tau / phi) * ((mu_d - PU) * sigma_c**2 - (mu_c - PA) * sigma_cd)
-    xgA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PS) * sigma_cd)
-    xgS = (tau / phi) * ((mu_d - PS) * sigma_c**2 - (mu_c - PA) * sigma_cd)
-    xsR = (tau / (sigma_d**2)) * (mu_d - PR)
+    xvA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PS) * sigma_cd)
+    xvS = (tau / phi) * ((mu_d - PS) * sigma_c**2 - (mu_c - PA) * sigma_cd)
+    xmR = (tau / (sigma_d**2)) * (mu_d - PR)
     X = {
         InvestorType.n: {
             FirmType.A: xnA,
             FirmType.U: xnU,
         },
-        InvestorType.g: {
-            FirmType.A: xgA,
-            FirmType.S: xgS,
+        InvestorType.v: {
+            FirmType.A: xvA,
+            FirmType.S: xvS,
         },
-        InvestorType.s: {
-            FirmType.R: xsR,
+        InvestorType.m: {
+            FirmType.R: xmR,
         },
     }
     return X
 
-def reform_exchange_compute_pi(params: ModelParams) -> float:
+def reform_exchange_compute_pi(params: ModelParams) -> tuple:
 
     # Unpack
     p = params
-    Ig, In, Is = p.Ig, p.In, p.Is
+    In, Iv, Im = p.In, p.Iv, p.Im
     K, T = p.K, p.T
     tau = p.tau
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     Nc, Nd = p.Nc, p.Nd
-    Ign = Ig + In
-    Isn = Is + In
+    Inv = In + Iv
+    Inm = In + Im
     psi = p.psi
     phi = p.phi
 
     # Eqs: Option Price
-    pi_op = (Nc / Ign - Nd / Is) * (phi) / (psi * tau) - K                                
+    pi_op = (Nc / Inv - Nd / Im) * (phi) / (psi * tau) - K                                
     
     # Eqs: Obligation Price
     pi_ob = (
-    ((Is * Nc - Ig * Nd)*(phi) # Phi Term
-     - Is * K *(Ig * sigma_c**2 + (Ign)* sigma_d**2 - (2 * Ig + In) * sigma_cd) * tau)
+    ((Im * Nc - Iv * Nd)*(phi) # Phi Term
+     - Im * K *(Iv * sigma_c**2 + (Inv)* sigma_d**2 - (2 * Iv + In) * sigma_cd) * tau)
     /
-    ( (Ig*(Isn) * sigma_c**2 - 2 * Ig * Is * sigma_cd + Is * (Ign)* sigma_d**2) * tau )
-                )      
+    ( (Iv*(Inm) * sigma_c**2 - 2 * Iv * Im * sigma_cd + Im * (Inv)* sigma_d**2) * tau )
+                )
+          
     return pi_op, pi_ob 
 
-def corner_ob_trading_corporate_choices(params: ModelParams) -> float:
+def corner_ob_trading_corporate_choices(params: ModelParams) -> dict:
+
+    # Unpack
     p = params
-    Ig, In, Is = p.Ig, p.In, p.Is
+    In, Iv, Im = p.In, p.Iv, p.Im
     K, T = p.K, p.T
     tau = p.tau
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
-    NR = (Is / I) * (
-        Nd - K * (Ig + In) * (tau / phi) * sigma_c**2 + T* Ig * (tau / phi) * sigma_c**2)
-    NG = (Ig / I) * (
-        Nd + (K - T) * Is * (tau / phi) * sigma_c**2 - T * In * (tau / phi) * sigma_c**2)
-    NAprime = (Is / I) * (
-        Nc - (K - T) * Ig * (tau / phi) * sigma_d**2 - K * In * (tau / phi) * sigma_d**2 + T * In * (tau / phi) * sigma_d**2)
+    NR = (Im / I) * (
+        Nd - K * (Iv + In) * (tau / phi) * sigma_c**2 + T* Iv * (tau / phi) * sigma_c**2)
+    NG = (Iv / I) * (
+        Nd + (K - T) * Im * (tau / phi) * sigma_c**2 - T * In * (tau / phi) * sigma_c**2)
+    NAprime = (Im / I) * (
+        Nc - (K - T) * Iv * (tau / phi) * sigma_d**2 - K * In * (tau / phi) * sigma_d**2 + T * In * (tau / phi) * sigma_d**2)
     NUprime = NAprime
     NS = NG - NUprime
     NA = Nc - NAprime
@@ -203,10 +213,11 @@ def corner_ob_trading_corporate_choices(params: ModelParams) -> float:
         }
     return N
 
-def corner_ob_trading_share_prices(params: ModelParams) -> float:
+def corner_ob_trading_share_prices(params: ModelParams) -> dict:
 
+    # Unpack
     p = params
-    Ig, In, Is = p.Ig, p.In, p.Is
+    In, Iv, Im = p.In, p.Iv, p.Im
     K, T = p.K, p.T
     tau = p.tau
     mu_c , mu_d = p.mu_c, p.mu_d
@@ -219,9 +230,9 @@ def corner_ob_trading_share_prices(params: ModelParams) -> float:
     NU, NR, NS, NUprime = N[FirmType.U], N[FirmType.R], N[FirmType.S], N[FirmType.Uprime]
 
     # Partial (?)
-    PA = mu_c - (1/((Ig + In)*tau)) * (NA * (sigma_c**2) + Nd * sigma_cd)
-    PAprime = mu_c - (1/(Is * tau)) * (NAprime * (sigma_c**2) + NR * sigma_cd)
-    PR = mu_d - (1/(Is * tau)) * (NAprime * sigma_cd + NR * (sigma_d**2))
+    PA = mu_c - (1/((Iv + In)*tau)) * (NA * (sigma_c**2) + Nd * sigma_cd)
+    PAprime = mu_c - (1/(Im * tau)) * (NAprime * (sigma_c**2) + NR * sigma_cd)
+    PR = mu_d - (1/(Im * tau)) * (NAprime * sigma_cd + NR * (sigma_d**2))
     PU = PR - K
     PG = PU + T
     PS, PUprime = PG, PG
@@ -234,10 +245,12 @@ def corner_ob_trading_share_prices(params: ModelParams) -> float:
             FirmType.S: PS,
             FirmType.Uprime: PUprime,
         }
+    
     return P
 
-def corner_ob_trading_investor_positions(params: ModelParams) -> float:
+def corner_ob_trading_investor_positions(params: ModelParams) -> dict:
 
+    # Unpack
     p = params
     tau = p.tau
     mu_c , mu_d = p.mu_c, p.mu_d
@@ -257,75 +270,75 @@ def corner_ob_trading_investor_positions(params: ModelParams) -> float:
     PG = PS
     xnA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PU) * sigma_cd)
     xnU = (tau / phi) * ((mu_d - PU) * sigma_c**2 - (mu_c - PA) * sigma_cd)
-    xgA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PG) * sigma_cd)
-    xgG = (tau / phi) * ((mu_d - PG) * sigma_c**2 - (mu_c - PA) * sigma_cd)    
-    xgS = NS / p.Ig
-    xgUprime = NUprime / p.Ig
-    xsAprime = (tau / phi) * ((mu_c - PAprime) * sigma_d**2 - (mu_d - PR) * sigma_cd)
-    xsR = (tau / phi) * ((mu_d - PR) * sigma_c**2 - (mu_c - PAprime) * sigma_cd)
+    xvA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PG) * sigma_cd)
+    xvG = (tau / phi) * ((mu_d - PG) * sigma_c**2 - (mu_c - PA) * sigma_cd)    
+    xvS = NS / p.Iv
+    xvUprime = NUprime / p.Iv
+    xmAprime = (tau / phi) * ((mu_c - PAprime) * sigma_d**2 - (mu_d - PR) * sigma_cd)
+    xmR = (tau / phi) * ((mu_d - PR) * sigma_c**2 - (mu_c - PAprime) * sigma_cd)
 
     X = {
-            InvestorType.n: {FirmType.A: xnA, FirmType.U: xnU},
-            InvestorType.g: {
-                FirmType.A: xgA,
-                FirmType.S: xgS,
-                FirmType.Uprime: xgUprime,
+            InvestorType.n: {FirmType.A: xnA, 
+                             FirmType.U: xnU},
+            InvestorType.v: {FirmType.A: xvA,
+                             FirmType.S: xvS,
+                             FirmType.Uprime: xvUprime,
             },
-            InvestorType.s: {FirmType.Aprime: xsAprime, FirmType.R: xsR},
+            InvestorType.m: {FirmType.Aprime: xmAprime, 
+                             FirmType.R: xmR},
         }
     
     return X
 
-def interior_ob_trading_corporate_choices(params: ModelParams, pi_ob: float) -> float:
+def interior_ob_trading_corporate_choices(params: ModelParams, pi_ob: float) -> dict:
     
     # Unpack
-
     p = params
-    Ig, In, Is = p.Ig, p.In, p.Is
+    In, Iv, Im = p.In, p.Iv, p.Im
     K, T = p.K, p.T
     tau = p.tau
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
-    Ign = Ig + In
-    Isn = Is + In
+    Inv = In + Iv
+    Inm = In + Im
 
     # Lemma 3.7
 
     Unweighted_NA = (Nc 
-                    + K * Is * (tau / phi) * (sigma_d**2 - sigma_cd)
-                    + pi_ob * Is * (tau / phi) * (sigma_d**2  - sigma_cd * (Ig / Ign)) 
+                    + K * Im * (tau / phi) * (sigma_d**2 - sigma_cd)
+                    + pi_ob * Im * (tau / phi) * (sigma_d**2  - sigma_cd * (Iv / Inv)) 
     )
-    Weighted_NA = ((Ig + In) / I) * (Unweighted_NA)
+    Weighted_NA = ((Iv + In) / I) * (Unweighted_NA)
     NA = max(0, Weighted_NA)
 
     Unweighted_NA_Prime = (Nc 
-                        - K * Ign * (tau / phi) * (sigma_d**2 - sigma_cd) 
-                        - pi_ob * Ign * (tau / phi) * ( sigma_d**2  - sigma_cd * (Ig/Ign))
+                        - K * Inv * (tau / phi) * (sigma_d**2 - sigma_cd) 
+                        - pi_ob * Inv * (tau / phi) * ( sigma_d**2  - sigma_cd * (Iv/Inv))
     ) 
-    Weighted_NA_Prime = (Is / I ) * (Unweighted_NA_Prime)
+    Weighted_NA_Prime = (Im / I ) * (Unweighted_NA_Prime)
     NAprime = max(0, Weighted_NA_Prime)
 
     Unweighted_NU = (Nd 
-                    + K * Is * (tau / phi) * (sigma_c**2 - sigma_cd)
-                    - pi_ob * Ig * (tau / phi) * (sigma_c**2 + sigma_cd * (Is/Ig))
+                    + K * Im * (tau / phi) * (sigma_c**2 - sigma_cd)
+                    - pi_ob * Iv * (tau / phi) * (sigma_c**2 + sigma_cd * (Im/Iv))
     )  
     Weighted_NU = (In / I) * (Unweighted_NU)
     NU = max(0, Weighted_NU) 
 
     Unweighted_NU_Prime = (Nd 
-                    + K * Is * (tau / phi)*(sigma_c**2 - sigma_cd) 
-                    + pi_ob * Isn * (tau / phi) * (sigma_c**2 - sigma_cd * (Is / Isn) )
+                    + K * Im * (tau / phi)*(sigma_c**2 - sigma_cd) 
+                    + pi_ob * Inm * (tau / phi) * (sigma_c**2 - sigma_cd * (Im / Inm) )
     )
-    Weighted_NU_Prime = (Ig / I) * (Unweighted_NU_Prime)
+    Weighted_NU_Prime = (Im / I) * (Unweighted_NU_Prime)
     NUprime = max(0, Weighted_NU_Prime)
 
     Unweighted_NR = (Nd 
-                    - K * Ign * (tau / phi) * (sigma_c**2 - sigma_cd)  
-                    - pi_ob * Ig * (tau / phi) * (sigma_c**2 - sigma_cd * (Ign / Ig)) 
+                    - K * Inv * (tau / phi) * (sigma_c**2 - sigma_cd)  
+                    - pi_ob * Iv * (tau / phi) * (sigma_c**2 - sigma_cd * (Inv / Iv)) 
     )
-    Weighted_NR = (Is / I) * (Unweighted_NR)
+    Weighted_NR = (Im / I) * (Unweighted_NR)
     NR = max(0, Weighted_NR)
     NS = 0
     N = {
@@ -338,12 +351,12 @@ def interior_ob_trading_corporate_choices(params: ModelParams, pi_ob: float) -> 
         }
     return N
 
-def interior_ob_trading_share_prices(params: ModelParams, pi_ob: float) -> float:
+def interior_ob_trading_share_prices(params: ModelParams, pi_ob: float) -> dict:
 
     # Unpack
 
     p = params
-    Ig, In, Is = p.Ig, p.In, p.Is
+    In, Iv, Im = p.In, p.Iv, p.Im
     K, T = p.K, p.T
     tau = p.tau
     mu_c , mu_d = p.mu_c, p.mu_d
@@ -351,31 +364,31 @@ def interior_ob_trading_share_prices(params: ModelParams, pi_ob: float) -> float
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
-    Ign = Ig + In
+    Inv = In + Iv
 
     PA = (mu_c - (1 / I) * (
         + Nc * sigma_c**2 / tau
         + Nd * sigma_cd / tau
-        + Is * (K + pi_ob)
+        + Im * (K + pi_ob)
     )
     )
     PAprime = (mu_c - (1 / I) * (
         + Nc * sigma_c**2 / tau
         + Nd * sigma_cd / tau
-        - Ign * (K + pi_ob)
+        - Inv * (K + pi_ob)
     )
     )
     PU = (mu_d - (1 / I) * (
         + Nd * sigma_d**2 / tau
         + Nc * sigma_cd / tau
-        + Is * K
-        - Ig * pi_ob
+        + Im * K
+        - Iv * pi_ob
     )
     )
     PUprime = (mu_d - (1 / I) * (
         + Nd * sigma_d**2 / tau
         + Nc * sigma_cd / tau
-        + Is * (K + pi_ob)
+        + Im * (K + pi_ob)
         + In * pi_ob
     )
     )       
@@ -383,7 +396,7 @@ def interior_ob_trading_share_prices(params: ModelParams, pi_ob: float) -> float
         + Nd * sigma_d**2 / tau
         + Nc * sigma_cd / tau
         - In * K
-        - Ig * (K + pi_ob)
+        - Iv * (K + pi_ob)
     )
     )
     PS = (0)
@@ -399,7 +412,7 @@ def interior_ob_trading_share_prices(params: ModelParams, pi_ob: float) -> float
     
     return P
 
-def interior_ob_trading_investor_positions(params: ModelParams, pi_ob) -> float:
+def interior_ob_trading_investor_positions(params: ModelParams, pi_ob) -> dict:
 
     # Unpack
     p = params
@@ -416,61 +429,61 @@ def interior_ob_trading_investor_positions(params: ModelParams, pi_ob) -> float:
     # Positions (No Lemma)
     xnA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PU) * sigma_cd)
     xnU = (tau / phi) * ((mu_d - PU) * sigma_c**2 - (mu_c - PA) * sigma_cd)
-    xgA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PUprime) * sigma_cd)
-    xgUprime = (tau / phi) * ((mu_d - PUprime) * sigma_c**2 - (mu_c - PA) * sigma_cd)
-    xsAprime = (tau / phi) * ((mu_c - PAprime) * sigma_d**2 - (mu_d - PR) * sigma_cd)
-    xsR = (tau / phi) * ((mu_d - PR) * sigma_c**2 - (mu_c - PAprime) * sigma_cd)
-    xgS = 0
+    xvA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PUprime) * sigma_cd)
+    xvUprime = (tau / phi) * ((mu_d - PUprime) * sigma_c**2 - (mu_c - PA) * sigma_cd)
+    xmAprime = (tau / phi) * ((mu_c - PAprime) * sigma_d**2 - (mu_d - PR) * sigma_cd)
+    xmR = (tau / phi) * ((mu_d - PR) * sigma_c**2 - (mu_c - PAprime) * sigma_cd)
+    xvS = 0
 
     X = {
                 InvestorType.n: {FirmType.A: xnA, FirmType.U: xnU},
-                InvestorType.g: {FirmType.A: xgA, FirmType.Uprime: xgUprime},
-                InvestorType.s: {FirmType.Aprime: xsAprime, FirmType.R: xsR},
+                InvestorType.v: {FirmType.A: xvA, FirmType.Uprime: xvUprime},
+                InvestorType.m: {FirmType.Aprime: xmAprime, FirmType.R: xmR},
             }
     return X
 
-def options_trading_corporate_choices(params: ModelParams, pi_op: float) -> float:
+def options_trading_corporate_choices(params: ModelParams, pi_op: float) -> dict:
 
     # Unpack
     p = params
-    Ig, In, Is = p.Ig, p.In, p.Is
+    In, Iv, Im = p.In, p.Iv, p.Im
     K, T = p.K, p.T
     tau = p.tau
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
-    Ign = Ig + In
+    Inv = In + Iv
 
     # Lemma 3.4: Options Trading Corporate Choice
 
     Unweighted_NA = (
         Nc 
-        + Is * (K + pi_op) * (tau / phi) * (sigma_d**2 - sigma_cd)
+        + Im * (K + pi_op) * (tau / phi) * (sigma_d**2 - sigma_cd)
     )
-    Weighted_NA = (Ign / I) * (Unweighted_NA)
+    Weighted_NA = (Inv / I) * (Unweighted_NA)
     NA = max(0, Weighted_NA)
 
     Unweighted_NA_Prime = (
         Nc 
-        - (Ig + In) * (K + pi_op) * (tau / phi) * (sigma_d**2 - sigma_cd)
+        - (Iv + In) * (K + pi_op) * (tau / phi) * (sigma_d**2 - sigma_cd)
     )
-    Weighted_NA_Prime = (Is / I ) * (Unweighted_NA_Prime)
+    Weighted_NA_Prime = (Im / I ) * (Unweighted_NA_Prime)
     NAprime = max(0, Weighted_NA_Prime)
 
     Unweighted_NU_Prime = (
         Nd 
-        + Is * (K + pi_op) *(tau / phi) * (sigma_c**2 - sigma_cd)
+        + Im * (K + pi_op) *(tau / phi) * (sigma_c**2 - sigma_cd)
     )
-    Weighted_NU_Prime = (Ign/ I) * (Unweighted_NU_Prime)
+    Weighted_NU_Prime = (Inv/ I) * (Unweighted_NU_Prime)
 
     NUprime = max(0, Weighted_NU_Prime) 
 
     Unweighted_NR = (
         Nd 
-        - Ign * (K + pi_op) *(tau / phi) * (sigma_c**2 - sigma_cd)
+        - Inv * (K + pi_op) *(tau / phi) * (sigma_c**2 - sigma_cd)
     )
-    Weighted_NR = (Is / I) * (Unweighted_NR)
+    Weighted_NR = (Im / I) * (Unweighted_NR)
     NR = max(0, Weighted_NR)
     NU, NS = 0, 0
     N = {
@@ -484,11 +497,11 @@ def options_trading_corporate_choices(params: ModelParams, pi_op: float) -> floa
 
     return N
 
-def options_trading_share_prices(params: ModelParams, pi_op: float) -> float:
+def options_trading_share_prices(params: ModelParams, pi_op: float) -> dict:
     
     # Unpack
     p = params
-    Ig, In, Is = p.Ig, p.In, p.Is
+    In, Iv, Im = p.In, p.Iv, p.Im
     K, T = p.K, p.T
     tau = p.tau
     mu_c , mu_d = p.mu_c, p.mu_d
@@ -504,19 +517,19 @@ def options_trading_share_prices(params: ModelParams, pi_op: float) -> float:
     # Lemma 3.5 - Eqs: Options Trading Share Prices
     PA = (mu_c   
         - risk_c
-        - (Is / I) * (K + pi_op)
+        - (Im / I) * (K + pi_op)
     )
     PAprime = (mu_c  
         - risk_c
-        + ((Ig + In) / I) * (K + pi_op)
+        + ((Iv + In) / I) * (K + pi_op)
     )
     PUprime = (mu_d  
         - risk_d
-        - (Is / I) * (K + pi_op)
+        - (Im / I) * (K + pi_op)
     )
     PR = (mu_d 
         - risk_d
-        + ((Ig + In)/ I) * (K + pi_op)
+        + ((Iv + In)/ I) * (K + pi_op)
     )
     PU, PS = 0, 0
 
@@ -530,7 +543,7 @@ def options_trading_share_prices(params: ModelParams, pi_op: float) -> float:
         }
     return P
 
-def options_trading_investor_positions(params: ModelParams, pi_op) -> float:
+def options_trading_investor_positions(params: ModelParams, pi_op) -> dict:
     
     # Unpack
     p = params
@@ -547,42 +560,43 @@ def options_trading_investor_positions(params: ModelParams, pi_op) -> float:
     # Positions (No Lemma)
     xnA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PUprime) * sigma_cd)
     xnUprime = (tau / phi) * ((mu_d - PUprime) * sigma_c**2 - (mu_c - PA) * sigma_cd)
-    xgA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PUprime) * sigma_cd)
-    xgUprime = (tau / phi) * ((mu_d - PUprime) * sigma_c**2 - (mu_c - PA) * sigma_cd)
-    xsAprime = (tau / phi) * ((mu_c - PAprime) * sigma_d**2 - (mu_d - PR) * sigma_cd)
-    xsR = (tau / phi) * ((mu_d - PR) * sigma_c**2 - (mu_c - PAprime) * sigma_cd)
-    xnU, xgS = 0, 0
+    xvA = (tau / phi) * ((mu_c - PA) * sigma_d**2 - (mu_d - PUprime) * sigma_cd)
+    xvUprime = (tau / phi) * ((mu_d - PUprime) * sigma_c**2 - (mu_c - PA) * sigma_cd)
+    xmAprime = (tau / phi) * ((mu_c - PAprime) * sigma_d**2 - (mu_d - PR) * sigma_cd)
+    xmR = (tau / phi) * ((mu_d - PR) * sigma_c**2 - (mu_c - PAprime) * sigma_cd)
+    xnU, xvS = 0, 0
 
     X = {
             InvestorType.n: {FirmType.A: xnA, FirmType.Uprime: xnUprime},
-            InvestorType.g: {
-                FirmType.A: xgA,
-                FirmType.S: xgS,
-                FirmType.Uprime: xgUprime,
+            InvestorType.v: {
+                FirmType.A: xvA,
+                FirmType.S: xvS,
+                FirmType.Uprime: xvUprime,
             },
-            InvestorType.s: {FirmType.Aprime: xsAprime, FirmType.R: xsR},
+            InvestorType.m: {FirmType.Aprime: xmAprime, FirmType.R: xmR},
         }
 
     return X
 
-def zero_price_corporate_choices(params: ModelParams) -> float:
+
+def zero_price_corporate_choices(params: ModelParams) -> dict:
 
     p = params
-    Ig, In, Is = p.Ig, p.In, p.Is
+    In, Iv, Im = p.In, p.Iv, p.Im
     K, T = p.K, p.T
     tau = p.tau
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     Nc, Nd = p.Nc, p.Nd
     psi, phi = p.psi, p.phi
     I = p.I
-    Ign = Ig + In
+    Inv = In + Iv
 
     # Eqs: Zero-Price Corporate Choice
-    NA = (Ign / I)* (Nc + Is * K * (sigma_d**2 - sigma_cd) * tau / phi)
-    NAprime = (Is / I ) * (Nc - Ign * K * (sigma_d**2 - sigma_cd) * tau / phi)
-    NUprime = (Is / I ) * (Nc - Ign * K * (sigma_d**2 - sigma_cd) * tau / phi)
-    NU = (Ign / I) * (Nd - Nc * (Is / Ign) + Is * K * psi * tau / phi) 
-    NR = (Is / I) * (Nd - Ign * K * (sigma_c**2 - sigma_cd) * tau / phi)
+    NA = (Inv / I)* (Nc + Im * K * (sigma_d**2 - sigma_cd) * tau / phi)
+    NAprime = (Im / I ) * (Nc - Inv * K * (sigma_d**2 - sigma_cd) * tau / phi)
+    NUprime = (Im / I ) * (Nc - Inv * K * (sigma_d**2 - sigma_cd) * tau / phi)
+    NU = (Inv / I) * (Nd - Nc * (Im / Inv) + Im * K * psi * tau / phi) 
+    NR = (Im / I) * (Nd - Inv * K * (sigma_c**2 - sigma_cd) * tau / phi)
     NS = 0
     N = {
             FirmType.A: NA,
@@ -594,10 +608,10 @@ def zero_price_corporate_choices(params: ModelParams) -> float:
         }
     return N
 
-def zero_price_share_prices(params: ModelParams) -> float:
+def zero_price_share_prices(params: ModelParams) -> dict:
     
     p = params
-    Ig, In, Is = p.Ig, p.In, p.Is
+    In, Iv, Im = p.In, p.Iv, p.Im
     K, T = p.K, p.T
     tau = p.tau
     mu_c , mu_d = p.mu_c, p.mu_d
@@ -605,16 +619,16 @@ def zero_price_share_prices(params: ModelParams) -> float:
     Nc, Nd = p.Nc, p.Nd
     phi = p.phi
     I = p.I
-    Ign = Ig + In
+    Inv = In + Iv
     
 
     # Eqs: Zero Price Share Prices
-    PA = mu_c - K* (Is / I) - Nc * (sigma_c**2) / (I * tau) - Nd * (sigma_cd) / (I * tau)
-    PAprime = mu_c + (Ign / I) * K - Nc * (sigma_c**2) / (I * tau) - Nd * (sigma_cd) / (I * tau)
-    PD = mu_d - K * (Is / I) - Nc * (sigma_cd / (I * tau)) - Nd * (sigma_d**2) / (I * tau)
+    PA = mu_c - K* (Im / I) - Nc * (sigma_c**2) / (I * tau) - Nd * (sigma_cd) / (I * tau)
+    PAprime = mu_c + (Inv / I) * K - Nc * (sigma_c**2) / (I * tau) - Nd * (sigma_cd) / (I * tau)
+    PD = mu_d - K * (Im / I) - Nc * (sigma_cd / (I * tau)) - Nd * (sigma_d**2) / (I * tau)
     PU = PD 
     PUprime = PD
-    PR = mu_d + K * (Ign / I) - Nc * (sigma_cd / (I * tau)) - Nd * (sigma_d**2) / (I * tau)
+    PR = mu_d + K * (Inv / I) - Nc * (sigma_cd / (I * tau)) - Nd * (sigma_d**2) / (I * tau)
     PS = 0
     P = {
             FirmType.A: PA,
@@ -626,7 +640,7 @@ def zero_price_share_prices(params: ModelParams) -> float:
         }
     return P
 
-def zero_price_investor_positions(params: ModelParams) -> float:
+def zero_price_investor_positions(params: ModelParams) -> dict:
 
     p = params
     tau = p.tau
@@ -634,22 +648,22 @@ def zero_price_investor_positions(params: ModelParams) -> float:
     sigma_c, sigma_d, sigma_cd = p.sigma_c, p.sigma_d, p.sigma_cd
     phi = p.phi
     Nc, Nd = p.Nc, p.Nd
-    In, Ig, Is = p.In, p.Ig, p.Is
+    In, Iv, Im = p.In, p.Iv, p.Im
     I = p.I
     K = p.K
     psi = p.psi
-    Ign = p.Ig + p.In
+    Inv = p.In + p.Iv
     
     # New
-    xsR = (1/I) * (Nd - K * Ign * tau * (sigma_c**2 - sigma_cd) / phi)
-    xsAprime = (1/I) * (Nc - K * Ign * tau * (sigma_d**2 - sigma_cd) / phi)
-    xnA = (1/I) * (Nc + K * Is * tau * (sigma_d**2 - sigma_cd) / phi) 
-    xnU = (1 / I) * (1 / In) * (Nd * Ign - Nc * Is + K * Is * Ign * psi * tau / phi)
-    poly = - Ig * sigma_c**2 + 2 * Ig * sigma_cd + In * sigma_cd - Ig * sigma_d**2 - In * sigma_d**2
-    xnUprime = (1 / I) * (1 / In) * (Nc * Is - Nd * Ig + Is * K * tau * (poly) / phi)
-    xgUprime = (1/I) * (Nd + Is * K * (sigma_c**2 - sigma_cd) * tau / phi)
-    xgA = (1 / I) * (Nc + Is * K * (sigma_d**2 - sigma_cd) * tau / phi)
-    xgS = 0
+    xmR = (1/I) * (Nd - K * Inv * tau * (sigma_c**2 - sigma_cd) / phi)
+    xmAprime = (1/I) * (Nc - K * Inv * tau * (sigma_d**2 - sigma_cd) / phi)
+    xnA = (1/I) * (Nc + K * Im * tau * (sigma_d**2 - sigma_cd) / phi) 
+    xnU = (1 / I) * (1 / In) * (Nd * Inv - Nc * Im + K * Im * Inv * psi * tau / phi)
+    poly = - Iv * sigma_c**2 + 2 * Iv * sigma_cd + In * sigma_cd - Iv * sigma_d**2 - In * sigma_d**2
+    xnUprime = (1 / I) * (1 / In) * (Nc * Im - Nd * Iv + Im * K * tau * (poly) / phi)
+    xvUprime = (1/I) * (Nd + Im * K * (sigma_c**2 - sigma_cd) * tau / phi)
+    xvA = (1 / I) * (Nc + Im * K * (sigma_d**2 - sigma_cd) * tau / phi)
+    xvS = 0
 
     X = {
                 InvestorType.n: {
@@ -657,8 +671,8 @@ def zero_price_investor_positions(params: ModelParams) -> float:
                     FirmType.U: xnU,
                     FirmType.Uprime: xnUprime,
                 },
-                InvestorType.g: {FirmType.A: xgA, FirmType.Uprime: xgUprime},
-                InvestorType.s: {FirmType.Aprime: xsAprime, FirmType.R: xsR},
+                InvestorType.v: {FirmType.A: xvA, FirmType.Uprime: xvUprime},
+                InvestorType.m: {FirmType.Aprime: xmAprime, FirmType.R: xmR},
             }
 
     return X

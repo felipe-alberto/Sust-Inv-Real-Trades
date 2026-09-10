@@ -85,8 +85,8 @@ def solve_allocation_only_equilibrium(params: ModelParams) -> EquilibriumAllocat
     active_firms_allocation_only = {FirmType.A, FirmType.U, FirmType.R, FirmType.S}
     active_links_allocation_only = {
                                     InvestorType.n: {FirmType.A, FirmType.U},
-                                    InvestorType.g: {FirmType.A, FirmType.S},
-                                    InvestorType.s: {FirmType.R},
+                                    InvestorType.v: {FirmType.A, FirmType.S},
+                                    InvestorType.m: {FirmType.R},
     }   
     EqmAlloc = EquilibriumAllocationOnly(
         N=N,
@@ -129,8 +129,8 @@ def solve_corner_obligations_equilibrium(params: ModelParams, pi_ob: float) -> E
                     FirmType.Uprime}
     active_links = {
             InvestorType.n: {FirmType.A, FirmType.U},
-            InvestorType.g: {FirmType.A, FirmType.S, FirmType.Uprime},
-            InvestorType.s: {FirmType.Aprime, FirmType.R},
+            InvestorType.v: {FirmType.A, FirmType.S, FirmType.Uprime},
+            InvestorType.m: {FirmType.Aprime, FirmType.R},
     }
     EqmTransform = EquilibriumAllocationTransformation(
     N=N,
@@ -156,8 +156,8 @@ def solve_interior_obligations_equilibrium(params: ModelParams, pi_ob: float) ->
                     FirmType.Uprime}
     active_links = {
             InvestorType.n: {FirmType.A, FirmType.U},
-            InvestorType.g: {FirmType.A, FirmType.Uprime},
-            InvestorType.s: {FirmType.Aprime, FirmType.R},
+            InvestorType.v: {FirmType.A, FirmType.Uprime},
+            InvestorType.m: {FirmType.Aprime, FirmType.R},
         }
     EqmTransform = EquilibriumAllocationTransformation(
     N=N,
@@ -182,8 +182,8 @@ def solve_options_trading_equilibrium(params: ModelParams, pi_op: float) -> Equi
                     FirmType.Uprime}
     active_links = {
             InvestorType.n: {FirmType.A, FirmType.Uprime},
-            InvestorType.g: {FirmType.A, FirmType.Uprime},
-            InvestorType.s: {FirmType.Aprime, FirmType.R},
+            InvestorType.v: {FirmType.A, FirmType.Uprime},
+            InvestorType.m: {FirmType.Aprime, FirmType.R},
         }
     EqmTransform = EquilibriumAllocationTransformation(
         N = N,
@@ -210,8 +210,8 @@ def solve_zero_price_equilibrium(params: ModelParams) -> EquilibriumAllocationTr
                     FirmType.U}
     active_links = {
             InvestorType.n: {FirmType.A, FirmType.Uprime, FirmType.U},
-            InvestorType.g: {FirmType.A, FirmType.Uprime},
-            InvestorType.s: {FirmType.Aprime, FirmType.R},
+            InvestorType.v: {FirmType.A, FirmType.Uprime},
+            InvestorType.m: {FirmType.Aprime, FirmType.R},
         }
 
     EqmTransform = EquilibriumAllocationTransformation(
